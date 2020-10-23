@@ -64,6 +64,16 @@ Distributed as-is; no warranty is given.
 ////////////////////////////////
 #define MAX17043_ADDRESS  0x36 // Unshifted I2C address. Becomes 0x6C for write and 0x6D for read.
 
+// Generic error:
+// Wire.endTransmission will return:
+// 0:success
+// 1:data too long to fit in transmit buffer
+// 2:received NACK on transmit of address
+// 3:received NACK on transmit of data
+// 4:other error
+// So, let's use "5" as a generic error value
+#define MAX17043_GENERIC_ERROR 5
+
 class SFE_MAX1704X
 {
 public:

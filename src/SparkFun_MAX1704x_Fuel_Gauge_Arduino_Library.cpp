@@ -159,7 +159,13 @@ uint8_t SFE_MAX1704X::sleep()
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
   if (configReg & (1<<7))
-    return 5; // Already sleeping, do nothing but return an error
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("sleep: MAX17043 is already sleeping!"));
+    }
+    return MAX17043_GENERIC_ERROR; // Already sleeping, do nothing but return an error
+  }
   configReg |= (1<<7); // Set sleep bit
 
   return write16(configReg, MAX17043_CONFIG);
@@ -170,7 +176,13 @@ uint8_t SFE_MAX1704X::wake()
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
   if (!(configReg & (1<<7)))
-    return 5; // Already awake, do nothing but return an error
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("sleep: MAX17043 is already awake!"));
+    }
+    return MAX17043_GENERIC_ERROR; // Already sleeping, do nothing but return an error
+  }
   configReg &= ~(1<<7); // Clear sleep bit
 
   return write16(configReg, MAX17043_CONFIG);
