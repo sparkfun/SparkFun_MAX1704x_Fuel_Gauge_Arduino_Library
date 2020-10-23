@@ -1,0 +1,36 @@
+#######################################
+# Syntax Coloring Map For MAX1704x
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+MAX17043	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+isConnected	KEYWORD2
+enableDebugging	KEYWORD2
+disableDebugging	KEYWORD2
+quickStart	KEYWORD2
+getVoltage	KEYWORD2
+getSOC	KEYWORD2
+getVersion	KEYWORD2
+getThreshold	KEYWORD2
+setThreshold	KEYWORD2
+getAlert	KEYWORD2
+clearAlert	KEYWORD2
+sleep	KEYWORD2
+wake	KEYWORD2
+reset	KEYWORD2
+getConfigRegister	KEYWORD2
+getCompensation	KEYWORD2
+setCompensation	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
