@@ -20,9 +20,10 @@ Distributed as-is; no warranty is given.
 ******************************************************************************/
 #include "SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library.h"
 
-SFE_MAX1704X::SFE_MAX1704X()
+SFE_MAX1704X::SFE_MAX1704X(int full_scale)
 {
   // Constructor
+  _full_scale = full_scale;
 }
 
 boolean SFE_MAX1704X::begin(TwoWire &wirePort)
@@ -75,10 +76,14 @@ float SFE_MAX1704X::getVoltage()
 {
   uint16_t vCell;
   vCell = read16(MAX17043_VCELL);
-  // vCell is a 12-bit register where each bit represents 1.25mV
+  // vCell is a 12-bit register where each bit represents:
+  // 1.25mV on the MAX17043
+  // 2.5mV on the MAX17044
   vCell = (vCell) >> 4;
 
-  return ((float) vCell / 800.0);
+  float divider = 4000 / _full_scale;
+
+  return (((float)vCell) / divider);
 }
 
 float SFE_MAX1704X::getSOC()

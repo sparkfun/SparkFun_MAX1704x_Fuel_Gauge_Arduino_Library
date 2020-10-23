@@ -1,5 +1,5 @@
 /******************************************************************************
-Example2_AlternatePorts
+Example3_MAX17044
 By: Paul Clark
 Date: October 23rd 2020
 
@@ -9,10 +9,10 @@ SparkFun MAX17043 Example Code
 Jim Lindblom @ SparkFun Electronics
 Original Creation Date: June 22, 2015
 
-This file demonstrates the simple API of the SparkFun MAX17043 Arduino library using non-standard Wire and Serial ports.
+This file demonstrates how to talk to the MAX17044 using the SparkFun MAX17043 Arduino library.
 
 This example will print the gauge's voltage and state-of-charge (SOC) readings
-to serial (115200 baud)
+to Serial (115200 baud)
 
 This code is released under the MIT license.
 
@@ -23,11 +23,7 @@ Distributed as-is; no warranty is given.
 
 #include <SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library.h> // Click here to get the library: http://librarymanager/All#SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library
 
-SFE_MAX1704X lipo;
-
-// Define our non-standard ports:
-#define mySerial Serial1
-TwoWire myWire(0);
+SFE_MAX1704X lipo(10); // The MAX17044 has a full-scale voltage of 10V. Specify it here. (int)
 
 double voltage = 0; // Variable to keep track of LiPo voltage
 double soc = 0; // Variable to keep track of LiPo state-of-charge (SOC)
@@ -35,24 +31,24 @@ bool alert; // Variable to keep track of whether alert has been triggered
 
 void setup()
 {
-	mySerial.begin(115200); // Start serial, to output debug data
-  while (!mySerial)
+	Serial.begin(115200); // Start serial, to output debug data
+  while (!Serial)
     ; //Wait for user to open terminal
-  mySerial.println(F("MAX17043 Example"));
+  Serial.println(F("MAX17044 Example"));
 
-  myWire.begin();
+  Wire.begin();
 
-  lipo.enableDebugging(mySerial); // Uncomment this line to enable helpful debug messages on non-standard serial
+  lipo.enableDebugging(); // Uncomment this line to enable helpful debug messages on Serial
 
-  // Set up the MAX17043 LiPo fuel gauge:
-  if (lipo.begin(myWire) == false) // Connect to the MAX17043 using non-standard wire port
+  // Set up the MAX17044 LiPo fuel gauge:
+  if (lipo.begin() == false) // Connect to the MAX17044 using the default wire port
   {
-    mySerial.println(F("MAX17043 not detected. Please check wiring. Freezing."));
+    Serial.println(F("MAX17044 not detected. Please check wiring. Freezing."));
     while (1)
       ;
   }
 
-	// Quick start restarts the MAX17043 in hopes of getting a more accurate
+	// Quick start restarts the MAX17044 in hopes of getting a more accurate
 	// guess for the SOC.
 	lipo.quickStart();
 
@@ -63,7 +59,7 @@ void setup()
 
 void loop()
 {
-	// lipo.getVoltage() returns a voltage value (e.g. 3.93)
+	// lipo.getVoltage() returns a voltage value (e.g. 7.86)
 	voltage = lipo.getVoltage();
 	// lipo.getSOC() returns the estimated state of charge (e.g. 79%)
 	soc = lipo.getSOC();
@@ -71,17 +67,17 @@ void loop()
 	alert = lipo.getAlert();
 
 	// Print the variables:
-	mySerial.print("Voltage: ");
-	mySerial.print(voltage);  // Print the battery voltage
-	mySerial.println(" V");
+	Serial.print("Voltage: ");
+	Serial.print(voltage);  // Print the battery voltage
+	Serial.println(" V");
 
-	mySerial.print("Alert: ");
-	mySerial.println(alert);
+	Serial.print("Alert: ");
+	Serial.println(alert);
 
-	mySerial.print("Percentage: ");
-	mySerial.print(soc); // Print the battery state of charge
-	mySerial.println(" %");
-	mySerial.println();
+	Serial.print("Percentage: ");
+	Serial.print(soc); // Print the battery state of charge
+	Serial.println(" %");
+	Serial.println();
 
 	delay(500);
 }

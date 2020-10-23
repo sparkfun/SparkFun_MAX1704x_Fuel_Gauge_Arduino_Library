@@ -8,6 +8,10 @@ MAX17044 is configured for a dual-cell 2S pack.
 
 This Arduino library provides support for both devices.
 
+## Thanks
+
+Parts of this library were based on / inspired by [Daniel Porrey's max1704x library](https://github.com/porrey/max1704x). Thank you Daniel.
+
 ## Repository Contents
 
 - **/examples** - Example sketches for the library (.ino). Run these from the Arduino IDE.

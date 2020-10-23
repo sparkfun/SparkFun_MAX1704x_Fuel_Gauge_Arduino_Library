@@ -77,7 +77,7 @@ Distributed as-is; no warranty is given.
 class SFE_MAX1704X
 {
 public:
-  SFE_MAX1704X();
+  SFE_MAX1704X(int full_scale = 5); // Default to a full-scale of 5V for the MAX17043. Select 10 for the MAX17044.
 
   // begin() - Initializes the MAX17043.
   boolean begin(TwoWire &wirePort = Wire); //Returns true if module is detected
@@ -170,6 +170,8 @@ private:
 
   Stream *_debugPort;			 //The stream to send debug messages to if enabled. Usually Serial.
   boolean _printDebug = false; //Flag to print debugging variables
+
+  int _full_scale = 5; // Default to a full-scale of 5V for the MAX17043. Select 10 for the MAX17044.
 
   // write16([data], [address]) - Write 16 bits to the requested address. After
   // writing the address to be written, two sequential 8-bit writes will occur.

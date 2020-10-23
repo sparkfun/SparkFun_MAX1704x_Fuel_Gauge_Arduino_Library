@@ -34,7 +34,7 @@ void setup()
 	Serial.begin(115200); // Start serial, to output debug data
   while (!Serial)
     ; //Wait for user to open terminal
-  Serial.println(F("MAX17043 / MAX17044 Example"));
+  Serial.println(F("MAX17043 Example"));
 
   Wire.begin();
 
@@ -43,7 +43,7 @@ void setup()
   // Set up the MAX17043 LiPo fuel gauge:
   if (lipo.begin() == false) // Connect to the MAX17043 using the default wire port
   {
-    Serial.println(F("MAX17043 / MAX17044 not detected. Please check wiring. Freezing."));
+    Serial.println(F("MAX17043 not detected. Please check wiring. Freezing."));
     while (1)
       ;
   }
