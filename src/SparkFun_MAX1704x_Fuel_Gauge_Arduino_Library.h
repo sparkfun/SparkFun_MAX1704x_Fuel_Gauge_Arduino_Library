@@ -158,7 +158,7 @@ public:
 
   // reset() - Issue a Power-on-reset command to the MAX17043. This function
   // will reset every register in the MAX17043 to its default value.
-  // Output: 0 on success, positive integer on fail.
+  // Output: Positive integer on success, 0 on fail.
   uint8_t reset();
 
   // getConfigRegister() - Read the 16-bit value of the CONFIG Register.
