@@ -30,6 +30,20 @@ reset	KEYWORD2
 getConfigRegister	KEYWORD2
 getCompensation	KEYWORD2
 setCompensation	KEYWORD2
+setResetVoltage	KEYWORD2
+getResetVoltage	KEYWORD2
+enableComparator	KEYWORD2
+disableComparator	KEYWORD2
+getChangeRate	KEYWORD2
+getStatus	KEYWORD2
+isReset	KEYWORD2
+isVoltageHigh	KEYWORD2
+isVoltageLow	KEYWORD2
+isVoltageReset	KEYWORD2
+isLow	KEYWORD2
+isChange	KEYWORD2
+enableAlert	KEYWORD2
+disableAlert	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

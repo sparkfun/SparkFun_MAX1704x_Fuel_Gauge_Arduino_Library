@@ -32,27 +32,42 @@ Distributed as-is; no warranty is given.
 //#include "application.h"
 
 ///////////////////////////////////
-// MAX17043 Register Definitions //
+// MAX1704x Register Definitions //
 ///////////////////////////////////
 // All registers contain two bytes of data and span two addresses.
-#define MAX17043_VCELL    0x02 // R - 12-bit A/D measurement of battery voltage
-#define MAX17043_SOC      0x04 // R - 16-bit state of charge (SOC)
-#define MAX17043_MODE     0x06 // W - Sends special commands to IC
-#define MAX17043_VERSION  0x08 // R - Returns IC version
-#define MAX17043_CONFIG   0x0C // R/W - Battery compensation (default 0x971C)
-#define MAX17043_COMMAND  0xFE // W - Sends special comands to IC
+#define MAX17043_VCELL 0x02     // R - 12-bit A/D measurement of battery voltage
+#define MAX17043_SOC 0x04       // R - 16-bit state of charge (SOC)
+#define MAX17043_MODE 0x06      // W - Sends special commands to IC
+#define MAX17043_VERSION 0x08   // R - Returns IC version
+#define MAX17048_HIBRT 0x0A     // R/W - (MAX17048/49) Thresholds for entering hibernate
+#define MAX17043_CONFIG 0x0C    // R/W - Battery compensation (default 0x971C)
+#define MAX17048_CVALRT 0x14    // R/W - (MAX17048/49) Configures vcell range to generate alerts (default 0x00FF)
+#define MAX17048_CRATE 0x16     // R - (MAX17048/49) Charge rate 0.208%/hr
+#define MAX17048_VRESET_ID 0x18 // R/W - (MAX17048/49) Reset voltage and ID (default 0x96__)
+#define MAX17048_STATUS 0x1A    // R/W - (MAX17048/49) Status of ID (default 0x01__)
+#define MAX17043_COMMAND 0xFE   // W - Sends special comands to IC
 
 ///////////////////////////////////
 // MAX17043 Config Register Bits //
 ///////////////////////////////////
-#define MAX17043_CONFIG_SLEEP     7
-#define MAX17043_CONFIG_ALERT     5
+#define MAX17043_CONFIG_SLEEP 7
+#define MAX17043_CONFIG_ALERT 5
 #define MAX17043_CONFIG_THRESHOLD 0
 
 /////////////////////////////////////
 // MAX17043 Mode Register Commands //
 /////////////////////////////////////
 #define MAX17043_MODE_QUICKSTART 0x4000
+
+/////////////////////////////////////
+// MAX17048/9 Status Register Bits //
+/////////////////////////////////////
+#define MAX1704x_STATUS_RI (1 << 0)
+#define MAX1704x_STATUS_VH (1 << 1)
+#define MAX1704x_STATUS_VL (1 << 2)
+#define MAX1704x_STATUS_VR (1 << 3)
+#define MAX1704x_STATUS_HD (1 << 4)
+#define MAX1704x_STATUS_SC (1 << 5)
 
 ////////////////////////////////////////
 // MAX17043 Command Register Commands //
@@ -62,7 +77,7 @@ Distributed as-is; no warranty is given.
 ////////////////////////////////
 // MAX17043 7-Bit I2C Address //
 ////////////////////////////////
-#define MAX17043_ADDRESS  0x36 // Unshifted I2C address. Becomes 0x6C for write and 0x6D for read.
+#define MAX1704x_ADDRESS 0x36 // Unshifted I2C address. Becomes 0x6C for write and 0x6D for read.
 
 // Generic error:
 // Wire.endTransmission will return:
@@ -82,12 +97,12 @@ public:
   // begin() - Initializes the MAX17043.
   boolean begin(TwoWire &wirePort = Wire); //Returns true if module is detected
 
-  //Returns true if device answers on MAX17043_ADDRESS
+  //Returns true if device answers on MAX1704x_ADDRESS
   boolean isConnected(void);
 
   // Debug
   void enableDebugging(Stream &debugPort = Serial); // enable debug messages
-  void disableDebugging(); // disable debug messages
+  void disableDebugging();                          // disable debug messages
 
   // quickStart() - Restarts the MAX17043 to allow it to re-"guess" the
   // parameters that go into its SoC algorithms. Calling this in your setup()
@@ -164,14 +179,62 @@ public:
   // Output: 0 on success, positive integer on fail.
   uint8_t setCompensation(uint8_t newCompensation);
 
-private:
-  //Variables
-  TwoWire *_i2cPort;		//The generic connection to user's chosen I2C hardware
+  // getID() - (MAX17048/49) Returns 8-bit OTP bits set at factory. Can be used to
+  // 'to distinguish multiple cell types in production'.
+  // Writes to these bits are ignored.
+  uint8_t getID(void);
 
-  Stream *_debugPort;			 //The stream to send debug messages to if enabled. Usually Serial.
-  boolean _printDebug = false; //Flag to print debugging variables
+  // setResetVoltage([threshold]) - (MAX17048/49) Set the 7-bit VRESET value.
+  // A 7-bit value that controls the comparator for detecting when
+  // a battery is detached and re-connected. 40mV per bit. Default is 3.0V.
+  // Input: [threshold] - Should be a value between 0-127.
+  // Output: 0 on success, positive integer on fail.
+  uint8_t setResetVoltage(uint8_t threshold);
 
-  int _full_scale = 5; // Default to a full-scale of 5V for the MAX17043. Select 10 for the MAX17044.
+  // getResetVoltage() - (MAX17048/49) Get the 7-bit VRESET value
+  // Output: 7-bit value read from the VRESET/ID register's MSB.
+  uint8_t getResetVoltage(void);
+
+  // enableComparator() - (MAX17048/49) Set bit in VRESET/ID reg
+  // Comparator is enabled by default. (Re)enable the analog comparator, uses 0.5uA.
+  // Output: 0 on success, positive integer on fail.
+  uint8_t enableComparator(void);
+
+  // disableComparator() - (MAX17048/49) Clear bit in VRESET/ID reg
+  // Disable the analog comparator, saves 0.5uA in hibernate mode.
+  // Output: 0 on success, positive integer on fail.
+  uint8_t disableComparator(void);
+
+  // getChangeRate() - (MAX17048/49) Get rate of change per hour in %
+  // Output: (signed) Float (that is the 0.208% * CRATE register value)
+  // A positive rate is charging, negative is discharge.
+  float getChangeRate();
+
+  // getStatus() - (MAX17048/49) Get the 7 bits of status register
+  // Output: 7-bits indicating various alerts
+  uint8_t getStatus();
+
+  //(MAX17048/49) Various helper functions to check bits in status register
+  bool isReset();       //True after POR
+  bool isVoltageHigh(); //True when VCELL is above VALRTMAX (see setAlertMinVoltage)
+  bool isVoltageLow();
+  bool isVoltageReset();
+  bool isLow();    //True when SOC crosses the value in ATHD (see setThreshold)
+  bool isChange(); //True when SOL changes by at least 1%
+
+  // softReset() - (MAX17048/49) Writes 0x5400 to CMD register (0xFE)
+  // Initiates a power on reset. May also work with MAX17043/44 but requires 0x0054?
+  // Output: None
+  void softReset();
+
+  // enableAlert() - (MAX17048/49) Set bit in STATUS register 0x1A
+  // Enable/disable the assertion of the !ALRT! pin when a voltage-reset
+  // event occurs under the conditions set by VRESET/ID register (see setResetVoltage)
+  // Output: 0 on success, positive integer on fail.
+  uint8_t enableAlert();
+  uint8_t disableAlert();
+
+  //Lower level functions but exposed incase user wants them
 
   // write16([data], [address]) - Write 16 bits to the requested address. After
   // writing the address to be written, two sequential 8-bit writes will occur.
@@ -185,6 +248,15 @@ private:
   // Input: [address] - An 8-bit address to be read from.
   // Output: A 16-bit value read from the device's address will be returned.
   uint16_t read16(uint8_t address);
+
+private:
+  //Variables
+  TwoWire *_i2cPort; //The generic connection to user's chosen I2C hardware
+
+  Stream *_debugPort;          //The stream to send debug messages to if enabled. Usually Serial.
+  boolean _printDebug = false; //Flag to print debugging variables
+
+  int _full_scale = 5; // Default to a full-scale of 5V for the MAX17043. Select 10 for the MAX17044.
 };
 
 #endif

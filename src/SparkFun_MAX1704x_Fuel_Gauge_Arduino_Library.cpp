@@ -45,15 +45,23 @@ boolean SFE_MAX1704X::begin(TwoWire &wirePort)
 //Returns true if device answers on _deviceAddress
 boolean SFE_MAX1704X::isConnected(void)
 {
-  _i2cPort->beginTransmission((uint8_t)MAX17043_ADDRESS);
-  return (_i2cPort->endTransmission() == 0);
+  _i2cPort->beginTransmission((uint8_t)MAX1704x_ADDRESS);
+  if (_i2cPort->endTransmission() == 0)
+  {
+    //Get version should return 0x001_
+    //Not a great test but something
+    //Supported on 43/44/48/49
+    if (getVersion() & (1 << 4))
+      return true;
+  }
+  return false;
 }
 
 //Enable or disable the printing of debug messages
 void SFE_MAX1704X::enableDebugging(Stream &debugPort)
 {
   _debugPort = &debugPort; //Grab which port the user wants us to use for debugging
-  _printDebug = true; //Should we print the commands we send? Good for debugging
+  _printDebug = true;      //Should we print the commands we send? Good for debugging
 }
 
 void SFE_MAX1704X::disableDebugging(void)
@@ -92,7 +100,7 @@ float SFE_MAX1704X::getSOC()
   float percent;
   soc = read16(MAX17043_SOC);
   percent = (soc & 0xFF00) >> 8;
-  percent += (float) (((uint8_t) soc) / 256.0);
+  percent += (float)(((uint8_t)soc) / 256.0);
 
   return percent;
 }
@@ -100,6 +108,102 @@ float SFE_MAX1704X::getSOC()
 uint16_t SFE_MAX1704X::getVersion()
 {
   return read16(MAX17043_VERSION);
+}
+
+//Supported on MAX17048/49
+uint8_t SFE_MAX1704X::getID()
+{
+  uint16_t vresetID = read16(MAX17048_VRESET_ID);
+  return (vresetID & 0xFF);
+}
+
+//Default is 0x4B = 75 (7bit, shifted from 0x96__)
+//40mV per bit. So default is 3.0V.
+uint8_t SFE_MAX1704X::setResetVoltage(uint8_t threshold)
+{
+  uint16_t vreset = read16(MAX17048_VRESET_ID);
+  vreset &= 0x01FF;                     // Mask out bits to set
+  vreset |= ((uint16_t)threshold << 9); // Add new threshold
+
+  return write16(vreset, MAX17048_VRESET_ID);
+}
+
+uint8_t SFE_MAX1704X::getResetVoltage(void)
+{
+  uint16_t threshold = read16(MAX17048_VRESET_ID) >> 9;
+  return ((uint8_t)threshold);
+}
+
+uint8_t SFE_MAX1704X::enableComparator(void)
+{
+  uint16_t vresetReg = read16(MAX17048_VRESET_ID);
+  vresetReg &= ~(1 << 8); //Clear bit to enable comparator
+  return write16(vresetReg, MAX17048_VRESET_ID);
+}
+
+uint8_t SFE_MAX1704X::disableComparator(void)
+{
+  uint16_t vresetReg = read16(MAX17048_VRESET_ID);
+  vresetReg |= (1 << 8); //Set bit to disable comparator
+  return write16(vresetReg, MAX17048_VRESET_ID);
+}
+
+float SFE_MAX1704X::getChangeRate(void)
+{
+  int16_t changeRate = read16(MAX17048_CRATE);
+  float changerate_f = changeRate * 0.208;
+  return (changerate_f);
+}
+
+uint8_t SFE_MAX1704X::getStatus(void)
+{
+  uint8_t statusReg = read16(MAX17048_STATUS) >> 8;
+  return (statusReg & 0x7F); //Highest bit is don't care
+}
+
+bool SFE_MAX1704X::isReset(void)
+{
+  uint8_t status = getStatus();
+  return (status & MAX1704x_STATUS_RI);
+}
+bool SFE_MAX1704X::isVoltageHigh(void)
+{
+  uint8_t status = getStatus();
+  return (status & MAX1704x_STATUS_VH);
+}
+bool SFE_MAX1704X::isVoltageLow(void)
+{
+  uint8_t status = getStatus();
+  return (status & MAX1704x_STATUS_VL);
+}
+bool SFE_MAX1704X::isVoltageReset(void)
+{
+  uint8_t status = getStatus();
+  return (status & MAX1704x_STATUS_VR);
+}
+bool SFE_MAX1704X::isLow(void)
+{
+  uint8_t status = getStatus();
+  return (status & MAX1704x_STATUS_HD);
+}
+bool SFE_MAX1704X::isChange(void)
+{
+  uint8_t status = getStatus();
+  return (status & MAX1704x_STATUS_SC);
+}
+
+uint8_t SFE_MAX1704X::enableAlert(void)
+{
+  uint16_t statusReg = read16(MAX17048_STATUS);
+  statusReg |= (1 << 14); // Set EnVR bit
+  return write16(statusReg, MAX17048_STATUS);
+}
+
+uint8_t SFE_MAX1704X::disableAlert(void)
+{
+  uint16_t statusReg = read16(MAX17048_STATUS);
+  statusReg &= ~(1 << 14); // Clear EnVR bit
+  return write16(statusReg, MAX17048_STATUS);
 }
 
 uint8_t SFE_MAX1704X::getThreshold()
@@ -127,7 +231,7 @@ uint8_t SFE_MAX1704X::setThreshold(uint8_t percent)
 
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  configReg &= 0xFFE0; // Mask out threshold bits
+  configReg &= 0xFFE0;  // Mask out threshold bits
   configReg |= percent; // Add new threshold
 
   return write16(configReg, MAX17043_CONFIG);
@@ -137,7 +241,7 @@ uint8_t SFE_MAX1704X::clearAlert()
 {
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  configReg &= ~(1<<MAX17043_CONFIG_ALERT); // Clear ALRT bit manually.
+  configReg &= ~(1 << MAX17043_CONFIG_ALERT); // Clear ALRT bit manually.
 
   return write16(configReg, MAX17043_CONFIG);
 }
@@ -146,11 +250,11 @@ uint8_t SFE_MAX1704X::getAlert(bool clear)
 {
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  if (configReg & (1<<MAX17043_CONFIG_ALERT))
+  if (configReg & (1 << MAX17043_CONFIG_ALERT))
   {
     if (clear) // If the clear flag is set
     {
-      configReg &= ~(1<<MAX17043_CONFIG_ALERT); // Clear ALRT bit manually.
+      configReg &= ~(1 << MAX17043_CONFIG_ALERT); // Clear ALRT bit manually.
       write16(configReg, MAX17043_CONFIG);
     }
     return 1;
@@ -163,7 +267,7 @@ uint8_t SFE_MAX1704X::sleep()
 {
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  if (configReg & (1<<7))
+  if (configReg & (1 << 7))
   {
     if (_printDebug == true)
     {
@@ -171,7 +275,7 @@ uint8_t SFE_MAX1704X::sleep()
     }
     return MAX17043_GENERIC_ERROR; // Already sleeping, do nothing but return an error
   }
-  configReg |= (1<<7); // Set sleep bit
+  configReg |= (1 << 7); // Set sleep bit
 
   return write16(configReg, MAX17043_CONFIG);
 }
@@ -180,7 +284,7 @@ uint8_t SFE_MAX1704X::wake()
 {
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  if (!(configReg & (1<<7)))
+  if (!(configReg & (1 << 7)))
   {
     if (_printDebug == true)
     {
@@ -188,7 +292,7 @@ uint8_t SFE_MAX1704X::wake()
     }
     return MAX17043_GENERIC_ERROR; // Already sleeping, do nothing but return an error
   }
-  configReg &= ~(1<<7); // Clear sleep bit
+  configReg &= ~(1 << 7); // Clear sleep bit
 
   return write16(configReg, MAX17043_CONFIG);
 }
@@ -226,11 +330,11 @@ uint8_t SFE_MAX1704X::write16(uint16_t data, uint8_t address)
   uint8_t msb, lsb;
   msb = (data & 0xFF00) >> 8;
   lsb = (data & 0x00FF);
-  Wire.beginTransmission(MAX17043_ADDRESS);
-  Wire.write(address);
-  Wire.write(msb);
-  Wire.write(lsb);
-  return (Wire.endTransmission());
+  _i2cPort->beginTransmission(MAX1704x_ADDRESS);
+  _i2cPort->write(address);
+  _i2cPort->write(msb);
+  _i2cPort->write(lsb);
+  return (_i2cPort->endTransmission());
 }
 
 uint16_t SFE_MAX1704X::read16(uint8_t address)
@@ -238,15 +342,15 @@ uint16_t SFE_MAX1704X::read16(uint8_t address)
   uint8_t msb, lsb;
   int16_t timeout = 1000;
 
-  Wire.beginTransmission(MAX17043_ADDRESS);
-  Wire.write(address);
-  Wire.endTransmission(false);
+  _i2cPort->beginTransmission(MAX1704x_ADDRESS);
+  _i2cPort->write(address);
+  _i2cPort->endTransmission(false);
 
-  Wire.requestFrom(MAX17043_ADDRESS, 2);
-  while ((Wire.available() < 2) && (timeout-- > 0))
+  _i2cPort->requestFrom(MAX1704x_ADDRESS, 2);
+  while ((_i2cPort->available() < 2) && (timeout-- > 0))
     delay(1);
-  msb = Wire.read();
-  lsb = Wire.read();
+  msb = _i2cPort->read();
+  lsb = _i2cPort->read();
 
-  return ((uint16_t) msb << 8) | lsb;
+  return ((uint16_t)msb << 8) | lsb;
 }
