@@ -20,10 +20,29 @@ Distributed as-is; no warranty is given.
 ******************************************************************************/
 #include "SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library.h"
 
-SFE_MAX1704X::SFE_MAX1704X(int full_scale)
+SFE_MAX1704X::SFE_MAX1704X(sfe_max1704x_devices_e device)
 {
   // Constructor
-  _full_scale = full_scale;
+
+  // Record the device type
+  _device = device;
+
+  // Define the full-scale voltage for VCELL based on the device
+  switch (device)
+  {
+    case MAX1704X_MAX17044:
+      _full_scale = 10.24; // MAX17044 VCELL is 12-bit, 2.50mV per LSB
+      break;
+    case MAX1704X_MAX17048:
+      _full_scale = 5.12; // MAX17048 VCELL is 16-bit, 78.125uV/cell per LSB
+      break;
+    case MAX1704X_MAX17049:
+      _full_scale = 10.24; // MAX17049 VCELL is 16-bit, 78.125uV/cell per LSB (i.e. 156.25uV per LSB)
+      break;
+    default: // Default is the MAX17043
+      _full_scale = 5.12; // MAX17043 VCELL is 12-bit, 1.25mV per LSB
+      break;
+  }
 }
 
 boolean SFE_MAX1704X::begin(TwoWire &wirePort)
@@ -77,6 +96,9 @@ uint8_t SFE_MAX1704X::quickStart()
   // IC’s “first guess” of SOC, the host can issue a quick-start to reduce the
   // error. A quick-start is initiated by a rising edge on the QSTRT pin, or
   // through software by writing 4000h to MODE register.
+
+  // Note: on the MAX17048/49 this will also clear / disable EnSleep
+
   return write16(MAX17043_MODE_QUICKSTART, MAX17043_MODE);
 }
 
@@ -84,14 +106,28 @@ float SFE_MAX1704X::getVoltage()
 {
   uint16_t vCell;
   vCell = read16(MAX17043_VCELL);
-  // vCell is a 12-bit register where each bit represents:
-  // 1.25mV on the MAX17043
-  // 2.5mV on the MAX17044
-  vCell = (vCell) >> 4;
 
-  float divider = 4000 / _full_scale;
+  if (_device <= MAX1704X_MAX17044)
+  {
+    // On the MAX17043/44: vCell is a 12-bit register where each bit represents:
+    // 1.25mV on the MAX17043
+    // 2.5mV on the MAX17044
+    vCell = (vCell) >> 4; // Align the 12 bits
 
-  return (((float)vCell) / divider);
+    float divider = 4096.0 / _full_scale;
+
+    return (((float)vCell) / divider);
+  }
+  else
+  {
+    // On the MAX17048/49: vCell is a 16-bit register where each bit represents 78.125uV/cell per LSB
+    // i.e. 78.125uV per LSB on the MAX17048
+    // i.e. 156.25uV per LSB on the MAX17049
+
+    float divider = 65536.0 / _full_scale;
+
+    return (((float)vCell) / divider);
+  }
 }
 
 float SFE_MAX1704X::getSOC()
@@ -113,6 +149,15 @@ uint16_t SFE_MAX1704X::getVersion()
 //Supported on MAX17048/49
 uint8_t SFE_MAX1704X::getID()
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getID: not supported on this device"));
+    }
+    return (0);
+  }
+
   uint16_t vresetID = read16(MAX17048_VRESET_ID);
   return (vresetID & 0xFF);
 }
@@ -121,6 +166,15 @@ uint8_t SFE_MAX1704X::getID()
 //40mV per bit. So default is 3.0V.
 uint8_t SFE_MAX1704X::setResetVoltage(uint8_t threshold)
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("setResetVoltage: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
   uint16_t vreset = read16(MAX17048_VRESET_ID);
   vreset &= 0x01FF;                     // Mask out bits to set
   vreset |= ((uint16_t)threshold << 9); // Add new threshold
@@ -130,12 +184,30 @@ uint8_t SFE_MAX1704X::setResetVoltage(uint8_t threshold)
 
 uint8_t SFE_MAX1704X::getResetVoltage(void)
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getResetVoltage: not supported on this device"));
+    }
+    return (0);
+  }
+
   uint16_t threshold = read16(MAX17048_VRESET_ID) >> 9;
   return ((uint8_t)threshold);
 }
 
 uint8_t SFE_MAX1704X::enableComparator(void)
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("enableComparator: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
   uint16_t vresetReg = read16(MAX17048_VRESET_ID);
   vresetReg &= ~(1 << 8); //Clear bit to enable comparator
   return write16(vresetReg, MAX17048_VRESET_ID);
@@ -143,6 +215,15 @@ uint8_t SFE_MAX1704X::enableComparator(void)
 
 uint8_t SFE_MAX1704X::disableComparator(void)
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("disableComparator: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
   uint16_t vresetReg = read16(MAX17048_VRESET_ID);
   vresetReg |= (1 << 8); //Set bit to disable comparator
   return write16(vresetReg, MAX17048_VRESET_ID);
@@ -150,6 +231,15 @@ uint8_t SFE_MAX1704X::disableComparator(void)
 
 float SFE_MAX1704X::getChangeRate(void)
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getChangeRate: not supported on this device"));
+    }
+    return (0.0);
+  }
+
   int16_t changeRate = read16(MAX17048_CRATE);
   float changerate_f = changeRate * 0.208;
   return (changerate_f);
@@ -157,6 +247,15 @@ float SFE_MAX1704X::getChangeRate(void)
 
 uint8_t SFE_MAX1704X::getStatus(void)
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getStatus: not supported on this device"));
+    }
+    return (0);
+  }
+
   uint8_t statusReg = read16(MAX17048_STATUS) >> 8;
   return (statusReg & 0x7F); //Highest bit is don't care
 }
@@ -194,15 +293,33 @@ bool SFE_MAX1704X::isChange(void)
 
 uint8_t SFE_MAX1704X::enableAlert(void)
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("enableAlert: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
   uint16_t statusReg = read16(MAX17048_STATUS);
-  statusReg |= (1 << 14); // Set EnVR bit
+  statusReg |= MAX1704x_STATUS_EnVR; // Set EnVR bit
   return write16(statusReg, MAX17048_STATUS);
 }
 
 uint8_t SFE_MAX1704X::disableAlert(void)
 {
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("disableAlert: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
   uint16_t statusReg = read16(MAX17048_STATUS);
-  statusReg &= ~(1 << 14); // Clear EnVR bit
+  statusReg &= ~MAX1704x_STATUS_EnVR; // Clear EnVR bit
   return write16(statusReg, MAX17048_STATUS);
 }
 
@@ -241,7 +358,7 @@ uint8_t SFE_MAX1704X::clearAlert()
 {
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  configReg &= ~(1 << MAX17043_CONFIG_ALERT); // Clear ALRT bit manually.
+  configReg &= ~MAX17043_CONFIG_ALERT; // Clear ALRT bit manually.
 
   return write16(configReg, MAX17043_CONFIG);
 }
@@ -250,11 +367,11 @@ uint8_t SFE_MAX1704X::getAlert(bool clear)
 {
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  if (configReg & (1 << MAX17043_CONFIG_ALERT))
+  if (configReg & MAX17043_CONFIG_ALERT)
   {
     if (clear) // If the clear flag is set
     {
-      configReg &= ~(1 << MAX17043_CONFIG_ALERT); // Clear ALRT bit manually.
+      configReg &= ~MAX17043_CONFIG_ALERT; // Clear ALRT bit manually.
       write16(configReg, MAX17043_CONFIG);
     }
     return 1;
@@ -263,11 +380,25 @@ uint8_t SFE_MAX1704X::getAlert(bool clear)
   return 0;
 }
 
+// In sleep mode, the IC halts all operations, reducing current
+// consumption to below 1μA. After exiting sleep mode,
+// the IC continues normal operation. In sleep mode, the
+// IC does not detect self-discharge. If the battery changes
+// state while the IC sleeps, the IC cannot detect it, causing
+// SOC error. Wake up the IC before charging or discharging.
 uint8_t SFE_MAX1704X::sleep()
 {
+  if (_device > MAX1704X_MAX17044)
+  {
+    // On the MAX17048, we also have to set the EnSleep bit in the MODE register
+    uint8_t result =  write16(MAX17048_MODE_ENSLEEP, MAX17043_MODE);
+    if (result)
+      return (result); // Write failed. Bail.
+  }
+
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  if (configReg & (1 << 7))
+  if (configReg & MAX17043_CONFIG_SLEEP)
   {
     if (_printDebug == true)
     {
@@ -275,7 +406,8 @@ uint8_t SFE_MAX1704X::sleep()
     }
     return MAX17043_GENERIC_ERROR; // Already sleeping, do nothing but return an error
   }
-  configReg |= (1 << 7); // Set sleep bit
+
+  configReg |= MAX17043_CONFIG_SLEEP; // Set sleep bit
 
   return write16(configReg, MAX17043_CONFIG);
 }
@@ -284,17 +416,32 @@ uint8_t SFE_MAX1704X::wake()
 {
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  if (!(configReg & (1 << 7)))
+  if (!(configReg & MAX17043_CONFIG_SLEEP))
   {
     if (_printDebug == true)
     {
-      _debugPort->println(F("sleep: MAX17043 is already awake!"));
+      _debugPort->println(F("wake: MAX17043 is already awake!"));
     }
     return MAX17043_GENERIC_ERROR; // Already sleeping, do nothing but return an error
   }
-  configReg &= ~(1 << 7); // Clear sleep bit
+  configReg &= ~MAX17043_CONFIG_SLEEP; // Clear sleep bit
 
-  return write16(configReg, MAX17043_CONFIG);
+  uint8_t result = write16(configReg, MAX17043_CONFIG);
+
+  if (result)
+    return (result); // Write failed. Bail.
+
+  if (_device > MAX1704X_MAX17044)
+  {
+    // On the MAX17048, we should also clear the EnSleep bit in the MODE register
+    // Strictly, this will clear the QuickStart bit too. Which is probably a good thing,
+    // as I don't think we can do a read-modify-write?
+    return write16(0x0000, MAX17043_MODE);
+  }
+  else
+  {
+    return (result);
+  }
 }
 
 uint8_t SFE_MAX1704X::reset()

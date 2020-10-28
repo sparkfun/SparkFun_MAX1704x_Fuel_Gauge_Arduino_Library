@@ -6,7 +6,7 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-MAX17043	KEYWORD1
+SFE_MAX17043	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)

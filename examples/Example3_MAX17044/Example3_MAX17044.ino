@@ -23,7 +23,11 @@ Distributed as-is; no warranty is given.
 
 #include <SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library.h> // Click here to get the library: http://librarymanager/All#SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library
 
-SFE_MAX1704X lipo(10); // The MAX17044 has a full-scale voltage of 10V. Specify it here. (int)
+SFE_MAX1704X lipo(MAX1704X_MAX17044); // Create a MAX17044
+
+//SFE_MAX1704X lipo(MAX1704X_MAX17043); // Create a MAX17043
+//SFE_MAX1704X lipo(MAX1704X_MAX17048); // Create a MAX17048
+//SFE_MAX1704X lipo(MAX1704X_MAX17049); // Create a MAX17049
 
 double voltage = 0; // Variable to keep track of LiPo voltage
 double soc = 0; // Variable to keep track of LiPo state-of-charge (SOC)

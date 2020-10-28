@@ -31,10 +31,22 @@ Distributed as-is; no warranty is given.
 
 //#include "application.h"
 
+//////////////////////////
+// MAX1704x Device Enum //
+//////////////////////////
+
+typedef enum {
+  MAX1704X_MAX17043 = 0,
+  MAX1704X_MAX17044, // 2-cell version of the MAX17043 (full-scale range of 10V)
+  MAX1704X_MAX17048,
+  MAX1704X_MAX17049  // 2-cell version of the MAX17048
+} sfe_max1704x_devices_e;
+
 ///////////////////////////////////
 // MAX1704x Register Definitions //
 ///////////////////////////////////
 // All registers contain two bytes of data and span two addresses.
+// Registers which are present on the MAX17048/49 only are prefixed with MAX17048_
 #define MAX17043_VCELL 0x02     // R - 12-bit A/D measurement of battery voltage
 #define MAX17043_SOC 0x04       // R - 16-bit state of charge (SOC)
 #define MAX17043_MODE 0x06      // W - Sends special commands to IC
@@ -50,24 +62,31 @@ Distributed as-is; no warranty is given.
 ///////////////////////////////////
 // MAX17043 Config Register Bits //
 ///////////////////////////////////
-#define MAX17043_CONFIG_SLEEP 7
-#define MAX17043_CONFIG_ALERT 5
+#define MAX17043_CONFIG_SLEEP (1 << 7)
+#define MAX17043_CONFIG_ALERT (1 << 5)
 #define MAX17043_CONFIG_THRESHOLD 0
 
 /////////////////////////////////////
 // MAX17043 Mode Register Commands //
 /////////////////////////////////////
-#define MAX17043_MODE_QUICKSTART 0x4000
+#define MAX17043_MODE_QUICKSTART 0x4000 // On the MAX17048 this also clears the EnSleep bit
+
+/////////////////////////////////
+// MAX17048 Mode Register Bits //
+/////////////////////////////////
+#define MAX17048_MODE_ENSLEEP 0x2000 // W - _Enables_ sleep mode (the SLEEP bit in the CONFIG reg engages sleep)
+#define MAX17048_MODE_HIBSTAT 0x1000 // R - indicates when the IC is in hibernate mode
 
 /////////////////////////////////////
 // MAX17048/9 Status Register Bits //
 /////////////////////////////////////
-#define MAX1704x_STATUS_RI (1 << 0)
-#define MAX1704x_STATUS_VH (1 << 1)
-#define MAX1704x_STATUS_VL (1 << 2)
-#define MAX1704x_STATUS_VR (1 << 3)
-#define MAX1704x_STATUS_HD (1 << 4)
-#define MAX1704x_STATUS_SC (1 << 5)
+#define MAX1704x_STATUS_RI (1 << 0) // Assumes the MSB has been shifted >> 8
+#define MAX1704x_STATUS_VH (1 << 1) // Assumes the MSB has been shifted >> 8
+#define MAX1704x_STATUS_VL (1 << 2) // Assumes the MSB has been shifted >> 8
+#define MAX1704x_STATUS_VR (1 << 3) // Assumes the MSB has been shifted >> 8
+#define MAX1704x_STATUS_HD (1 << 4) // Assumes the MSB has been shifted >> 8
+#define MAX1704x_STATUS_SC (1 << 5) // Assumes the MSB has been shifted >> 8
+#define MAX1704x_STATUS_EnVR (1 << 14)
 
 ////////////////////////////////////////
 // MAX17043 Command Register Commands //
@@ -75,7 +94,7 @@ Distributed as-is; no warranty is given.
 #define MAX17043_COMMAND_POR 0x5400
 
 ////////////////////////////////
-// MAX17043 7-Bit I2C Address //
+// MAX1704x 7-Bit I2C Address //
 ////////////////////////////////
 #define MAX1704x_ADDRESS 0x36 // Unshifted I2C address. Becomes 0x6C for write and 0x6D for read.
 
@@ -92,7 +111,7 @@ Distributed as-is; no warranty is given.
 class SFE_MAX1704X
 {
 public:
-  SFE_MAX1704X(int full_scale = 5); // Default to a full-scale of 5V for the MAX17043. Select 10 for the MAX17044.
+  SFE_MAX1704X(sfe_max1704x_devices_e device = MAX1704X_MAX17043); // Default to the 5V MAX17043
 
   // begin() - Initializes the MAX17043.
   boolean begin(TwoWire &wirePort = Wire); //Returns true if module is detected
@@ -150,6 +169,12 @@ public:
 
   // sleep() - Set the MAX17043 into sleep mode.
   // Output: 0 on success, positive integer on fail.
+  // In sleep mode, the IC halts all operations, reducing current
+  // consumption to below 1μA. After exiting sleep mode,
+  // the IC continues normal operation. In sleep mode, the
+  // IC does not detect self-discharge. If the battery changes
+  // state while the IC sleeps, the IC cannot detect it, causing
+  // SOC error. Wake up the IC before charging or discharging.
   uint8_t sleep();
 
   // wake() - Wake the MAX17043 up from sleep.
@@ -256,7 +281,8 @@ private:
   Stream *_debugPort;          //The stream to send debug messages to if enabled. Usually Serial.
   boolean _printDebug = false; //Flag to print debugging variables
 
-  int _full_scale = 5; // Default to a full-scale of 5V for the MAX17043. Select 10 for the MAX17044.
+  int _device = MAX1704X_MAX17043; // Default to MAX17043
+  float _full_scale = 5.12; // Default: full-scale for the MAX17043
 };
 
 #endif

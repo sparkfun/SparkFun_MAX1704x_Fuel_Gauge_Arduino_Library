@@ -23,7 +23,12 @@ Distributed as-is; no warranty is given.
 
 #include <SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library.h> // Click here to get the library: http://librarymanager/All#SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library
 
-SFE_MAX1704X lipo;
+SFE_MAX1704X lipo; // Defaults to the MAX17043
+
+//SFE_MAX1704X lipo(MAX1704X_MAX17043); // Create a MAX17043
+//SFE_MAX1704X lipo(MAX1704X_MAX17044); // Create a MAX17044
+//SFE_MAX1704X lipo(MAX1704X_MAX17048); // Create a MAX17048
+//SFE_MAX1704X lipo(MAX1704X_MAX17049); // Create a MAX17049
 
 // Define our non-standard ports:
 #define mySerial Serial1
