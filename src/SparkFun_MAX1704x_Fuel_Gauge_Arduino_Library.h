@@ -218,6 +218,7 @@ public:
 
   // getResetVoltage() - (MAX17048/49) Get the 7-bit VRESET value
   // Output: 7-bit value read from the VRESET/ID register's MSB.
+  // Returned value is 40mV per bit.
   uint8_t getResetVoltage(void);
 
   // enableComparator() - (MAX17048/49) Set bit in VRESET/ID reg

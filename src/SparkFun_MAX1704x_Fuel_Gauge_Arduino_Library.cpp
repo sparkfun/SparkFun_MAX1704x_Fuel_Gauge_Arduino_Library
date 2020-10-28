@@ -135,8 +135,8 @@ float SFE_MAX1704X::getSOC()
   uint16_t soc;
   float percent;
   soc = read16(MAX17043_SOC);
-  percent = (soc & 0xFF00) >> 8;
-  percent += (float)(((uint8_t)soc) / 256.0);
+  percent = (float)((soc & 0xFF00) >> 8);
+  percent += ((float)(soc & 0x00FF)) / 256.0;
 
   return percent;
 }
