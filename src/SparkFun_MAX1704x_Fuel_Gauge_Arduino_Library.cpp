@@ -535,8 +535,89 @@ uint8_t SFE_MAX1704X::setCompensation(uint8_t newCompensation)
   // Read the original configReg, so we can leave the lower 8 bits alone:
   uint16_t configReg = read16(MAX17043_CONFIG);
   configReg &= 0x00FF; // Mask out compensation bits
-  configReg |= ((uint16_t)newCompensation << 8) | configReg;
+  configReg |= ((uint16_t)newCompensation << 8) | configReg; // TO DO: remove duplicate OR
   return write16(configReg, MAX17043_CONFIG);
+}
+
+// VALRT Register:
+//  This register is divided into two thresholds: Voltage alert
+//  maximum (VALRT.MAX) and minimum (VALRT. MIN).
+//  Both registers have 1 LSb = 20mV. The IC alerts while
+//  VCELL > VALRT.MAX or VCELL < VALRT.MIN
+uint8_t SFE_MAX1704X::setVALRTMax(uint8_t threshold)
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("setVALRTMax: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  uint16_t valrt = read16(MAX17048_CVALRT);
+  valrt &= 0xFF00; // Mask off max bits
+  valrt |= (uint16_t)threshold;
+  return write16(valrt, MAX17048_CVALRT);
+}
+uint8_t SFE_MAX1704X::setVALRTMax(float threshold)
+{
+  uint8_t thresh = (uint8_t)(constrain(threshold, 0.0, 5.1) / 0.02);
+  return setVALRTMax(thresh);
+}
+
+uint8_t SFE_MAX1704X::getVALRTMax()
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getVALRTMax: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  uint16_t valrt = read16(MAX17048_CVALRT);
+  valrt &= 0x00FF; // Mask off max bits
+  return ((uint8_t)valrt);
+}
+
+uint8_t SFE_MAX1704X::setVALRTMin(uint8_t threshold)
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("setVALRTMin: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  uint16_t valrt = read16(MAX17048_CVALRT);
+  valrt &= 0x00FF; // Mask off min bits
+  valrt |= ((uint16_t)threshold) << 8;
+  return write16(valrt, MAX17048_CVALRT);
+}
+uint8_t SFE_MAX1704X::setVALRTMin(float threshold)
+{
+  uint8_t thresh = (uint8_t)(constrain(threshold, 0.0, 5.1) / 0.02);
+  return setVALRTMin(thresh);
+}
+
+uint8_t SFE_MAX1704X::getVALRTMin()
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getVALRTMin: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  uint16_t valrt = read16(MAX17048_CVALRT);
+  valrt >>= 8; // Shift min into LSB
+  return ((uint8_t)valrt);
 }
 
 uint8_t SFE_MAX1704X::write16(uint16_t data, uint8_t address)

@@ -46,6 +46,10 @@ isLow	KEYWORD2
 isChange	KEYWORD2
 enableAlert	KEYWORD2
 disableAlert	KEYWORD2
+getVALRTMax	KEYWORD2
+getVALRTMin	KEYWORD2
+setVALRTMax	KEYWORD2
+setVALRTMin	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

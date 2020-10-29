@@ -63,14 +63,14 @@ typedef enum {
 // MAX17043 Config Register Bits //
 ///////////////////////////////////
 #define MAX17043_CONFIG_SLEEP (1 << 7)
-#define MAX17043_CONFIG_ALSC (1 << 6) // MAX17048 only
+#define MAX17043_CONFIG_ALSC (1 << 6) // MAX17048/49 only
 #define MAX17043_CONFIG_ALERT (1 << 5)
 #define MAX17043_CONFIG_THRESHOLD 0
 
 /////////////////////////////////////
 // MAX17043 Mode Register Commands //
 /////////////////////////////////////
-#define MAX17043_MODE_QUICKSTART 0x4000 // On the MAX17048 this also clears the EnSleep bit
+#define MAX17043_MODE_QUICKSTART 0x4000 // On the MAX17048/49 this also clears the EnSleep bit
 
 /////////////////////////////////
 // MAX17048 Mode Register Bits //
@@ -264,7 +264,7 @@ public:
   // Output: 0 on success, positive integer on fail.
   uint8_t clearSOCAlert();
 
-  // Enable or Disable MAX17048 VRESET Alert:
+  // Enable or Disable MAX17048/49 VRESET Alert:
   //  EnVr (enable voltage reset alert) when set to 1 asserts
   //  the ALRT pin when a voltage-reset event occurs under
   //  the conditions described by the VRESET/ ID register.
@@ -274,6 +274,26 @@ public:
   // disableAlert() - Clear the ENvR bit in STATUS register 0x1A
   // Output: 0 on success, positive integer on fail.
   uint8_t disableAlert();
+
+  // Read and return the MAX17048/49 VALRT Maximum threshold
+  // LSb = 20mV
+  uint8_t getVALRTMax();
+
+  // Read and return the MAX17048/49 VALRT Minimum threshold
+  // LSb = 20mV
+  uint8_t getVALRTMin();
+
+  // Set the MAX17048/49 VALRT Maximum threshold
+  // Output: 0 on success, positive integer on fail.
+  // Note: this sets the threshold voltage _per cell_ (MAX17049 monitors two cells)
+  uint8_t setVALRTMax(uint8_t threshold = 0xFF); // LSb = 20mV
+  uint8_t setVALRTMax(float threshold = 5.1); // threshold is defined in Volts
+
+  // Set the MAX17048/49 VALRT Minimum threshold
+  // Output: 0 on success, positive integer on fail.
+  // Note: this sets the threshold voltage _per cell_ (MAX17049 monitors two cells)
+  uint8_t setVALRTMin(uint8_t threshold = 0x00); // LSb = 20mV
+  uint8_t setVALRTMin(float threshold = 0.0); // threshold is defined in Volts
 
   //Lower level functions but exposed incase user wants them
 
