@@ -63,7 +63,7 @@ typedef enum {
 // MAX17043 Config Register Bits //
 ///////////////////////////////////
 #define MAX17043_CONFIG_SLEEP (1 << 7)
-#define MAX17043_CONFIG_ALSC (1 << 6) // MAX17048/49 only
+#define MAX17043_CONFIG_ALSC 0x0040 // MAX17048/49 only
 #define MAX17043_CONFIG_ALERT (1 << 5)
 #define MAX17043_CONFIG_THRESHOLD 0
 
@@ -262,7 +262,7 @@ public:
   bool isVoltageLow();
   bool isVoltageReset();
   bool isLow();    //True when SOC crosses the value in ATHD (see setThreshold)
-  bool isChange(); //True when SOL changes by at least 1%
+  bool isChange(); //True when SOC changes by at least 1%
 
   // getAlert([clear]) - Check if the MAX1704X's ALRT alert interrupt has been
   // triggered.
@@ -275,16 +275,13 @@ public:
   // Output: 0 on success, positive integer on fail.
   uint8_t clearAlert();
 
-  // getSOCAlert([clear]) - (MAX17048/49) Check if the SOC alert interrupt has been
-  // triggered.
-  // INPUT: [clear] - If [clear] is true, the SOC alert flag will be cleared if it
-  // was set.
-  // OUTPUT: Returns 1 if interrupt is/was triggered, 0 if not.
-  uint8_t getSOCAlert(bool clear = false);
+  // enableSOCAlert() - (MAX17048/49) Enable the SOC change alert
+  // Returns true if the SOC change alert was enabled successfully
+  bool enableSOCAlert();
 
-  // clearSOCAlert() - (MAX17048/49) Clear the SOC alert flag.
-  // Output: 0 on success, positive integer on fail.
-  uint8_t clearSOCAlert();
+  // disableSOCAlert() - (MAX17048/49) Disable the SOC change alert
+  // Returns true if the SOC change alert was disabled successfully
+  bool disableSOCAlert();
 
   // Enable or Disable MAX17048/49 VRESET Alert:
   //  EnVr (enable voltage reset alert) when set to 1 asserts

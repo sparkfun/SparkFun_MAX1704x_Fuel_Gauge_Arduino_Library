@@ -328,55 +328,54 @@ uint8_t SFE_MAX1704X::getAlert(bool clear)
   return 0;
 }
 
-// clearSOCAlert() - (MAX17048/49) Clear the SOC alert flag.
-// Output: 0 on success, positive integer on fail.
-uint8_t SFE_MAX1704X::clearSOCAlert()
+// enableSOCAlert() - (MAX17048/49) Enable the SOC change alert
+// Returns true if the SOC change alert was enabled successfully
+bool SFE_MAX1704X::enableSOCAlert()
 {
   if (_device <= MAX1704X_MAX17044)
   {
     if (_printDebug == true)
     {
-      _debugPort->println(F("clearSOCAlert: not supported on this device"));
+      _debugPort->println(F("enableSOCAlert: not supported on this device"));
     }
-    return (MAX17043_GENERIC_ERROR);
+    return (false);
   }
 
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  configReg &= ~MAX17043_CONFIG_ALSC; // Clear ALSC bit manually.
-
-  return write16(configReg, MAX17043_CONFIG);
+  configReg |= MAX17043_CONFIG_ALSC; // Set the ALSC bit
+  // Update the config register, return false if the write fails
+  if (write16(configReg, MAX17043_CONFIG) > 0)
+    return (false);
+  // Re-Read the config reg
+  configReg = read16(MAX17043_CONFIG);
+  // Return true if the ALSC bit is set, otherwise return false
+  return ((configReg & MAX17043_CONFIG_ALSC) > 0);
 }
 
-// getSOCAlert([clear]) - (MAX17048/49) Check if the SOC alert interrupt has been
-// triggered.
-// INPUT: [clear] - If [clear] is true, the SOC alert flag will be cleared if it
-// was set.
-// OUTPUT: Returns 1 if interrupt is/was triggered, 0 if not.
-uint8_t SFE_MAX1704X::getSOCAlert(bool clear)
+// disableSOCAlert() - (MAX17048/49) Disable the SOC change alert
+// Returns true if the SOC change alert was disabled successfully
+bool SFE_MAX1704X::disableSOCAlert()
 {
   if (_device <= MAX1704X_MAX17044)
   {
     if (_printDebug == true)
     {
-      _debugPort->println(F("getSOCAlert: not supported on this device"));
+      _debugPort->println(F("disableSOCAlert: not supported on this device"));
     }
-    return (0);
+    return (false);
   }
 
   // Read config reg, so we don't modify any other values:
   uint16_t configReg = read16(MAX17043_CONFIG);
-  if (configReg & MAX17043_CONFIG_ALSC)
-  {
-    if (clear) // If the clear flag is set
-    {
-      configReg &= ~MAX17043_CONFIG_ALSC; // Clear ALSC bit manually.
-      write16(configReg, MAX17043_CONFIG);
-    }
-    return 1;
-  }
-
-  return 0;
+  configReg &= ~MAX17043_CONFIG_ALSC; // Clear the ALSC bit
+  // Update the config register, return false if the write fails
+  if (write16(configReg, MAX17043_CONFIG) > 0)
+    return (false);
+  // Re-Read the config reg
+  configReg = read16(MAX17043_CONFIG);
+  // Return true if the ALSC bit is clear, otherwise return false
+  return ((configReg & MAX17043_CONFIG_ALSC) == 0);
 }
 
 // Enable or Disable MAX17048 VRESET Alert:

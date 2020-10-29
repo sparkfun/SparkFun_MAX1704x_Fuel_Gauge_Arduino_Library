@@ -24,8 +24,8 @@ getThreshold	KEYWORD2
 setThreshold	KEYWORD2
 getAlert	KEYWORD2
 clearAlert	KEYWORD2
-getSOCAlert	KEYWORD2
-clearSOCAlert	KEYWORD2
+enableSOCAlert	KEYWORD2
+disableSOCAlert	KEYWORD2
 sleep	KEYWORD2
 wake	KEYWORD2
 reset	KEYWORD2
