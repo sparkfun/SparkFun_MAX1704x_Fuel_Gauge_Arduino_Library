@@ -260,8 +260,8 @@ public:
   // INPUT: [clear] - If [clear] is true, the alert flag will be cleared if it
   // was set.
   bool isReset(bool clear = false);       //True after POR
-  bool isVoltageHigh(bool clear = false); //True when VCELL is above VALRTMAX (see setAlertMinVoltage)
-  bool isVoltageLow(bool clear = false);
+  bool isVoltageHigh(bool clear = false); //True when VCELL goes above VALRTMAX (see setVALRTMax)
+  bool isVoltageLow(bool clear = false); //True when VCELL goes below VALRTMIN (see setVALRTMin)
   bool isVoltageReset(bool clear = false);
   bool isLow(bool clear = false);    //True when SOC crosses the value in ATHD (see setThreshold)
   bool isChange(bool clear = false); //True when SOC changes by at least 1% and SOCAlert is enabled
