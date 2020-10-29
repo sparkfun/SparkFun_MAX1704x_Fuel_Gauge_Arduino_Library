@@ -6,11 +6,17 @@ in handheld and portable equipment. The MAX17043
 is configured to operate with a single lithium cell and the
 MAX17044 is configured for a dual-cell 2S pack.
 
-This Arduino library provides support for both devices.
+The MAX17048/MAX17049 ICs are tiny, micropower current
+fuel gauges for lithium-ion (Li+) batteries in handheld
+and portable equipment. The MAX17048 operates with
+a single lithium cell and the MAX17049 with two lithium
+cells in series.
+
+This Arduino library provides support for all four devices.
 
 ## Thanks
 
-Parts of this library were based on / inspired by [Daniel Porrey's max1704x library](https://github.com/porrey/max1704x). Thank you Daniel.
+Parts of this library were inspired by [Daniel Porrey's max1704x library](https://github.com/porrey/max1704x). Thank you Daniel.
 
 ## Repository Contents
 
