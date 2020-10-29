@@ -94,6 +94,12 @@ typedef enum {
 ////////////////////////////////////////
 #define MAX17043_COMMAND_POR 0x5400
 
+///////////////////////////////////////
+// MAX17048 Hibernate Enable/Disable //
+///////////////////////////////////////
+#define MAX17048_HIBRT_ENHIB 0xFFFF // always use hibernate mode
+#define MAX17048_HIBRT_DISHIB 0x0000 // disable hibernate mode
+
 ////////////////////////////////
 // MAX1704x 7-Bit I2C Address //
 ////////////////////////////////
@@ -308,6 +314,37 @@ public:
   // Note: this sets the threshold voltage _per cell_ (MAX17049 monitors two cells)
   uint8_t setVALRTMin(uint8_t threshold = 0x00); // LSb = 20mV
   uint8_t setVALRTMin(float threshold = 0.0); // threshold is defined in Volts
+
+  // Read and return the MAX17048/49 Hibernate Status flag
+  bool isHibernating();
+
+  // Read and return the MAX17048/49 HIBRT Active Threshold
+  // LSb = 1.25mV
+  uint8_t getHIBRTActThr();
+
+  // Set the MAX17048/49 HIBRT Active Threshold
+  // Output: 0 on success, positive integer on fail.
+  uint8_t setHIBRTActThr(uint8_t threshold); // LSb = 1.25mV
+  uint8_t setHIBRTActThr(float threshold); // Helper function: set threshold in Volts
+
+  // Read and return the MAX17048/49 HIBRT Hibernate Threshold
+  // LSb = 0.208%/hr
+  uint8_t getHIBRTHibThr();
+
+  // Set the MAX17048/49 HIBRT Hibernate Threshold
+  // Output: 0 on success, positive integer on fail.
+  uint8_t setHIBRTHibThr(uint8_t threshold); // LSb = 0.208%/hr
+  uint8_t setHIBRTHibThr(float threshold); // Helper function: set threshold in percent
+
+  // Place the MAX17048/49 into hibernate
+  // Sets the HIBRT register to 0xFFFF
+  // Output: 0 on success, positive integer on fail.
+  uint8_t enableHibernate();
+
+  // Disable hibernate on the MAX17048/49
+  // Sets the HIBRT register to 0x0000
+  // Output: 0 on success, positive integer on fail.
+  uint8_t disableHibernate();
 
   //Lower level functions but exposed incase user wants them
 

@@ -50,6 +50,13 @@ getVALRTMax	KEYWORD2
 getVALRTMin	KEYWORD2
 setVALRTMax	KEYWORD2
 setVALRTMin	KEYWORD2
+isHibernating	KEYWORD2
+getHIBRTActThr	KEYWORD2
+setHIBRTActThr	KEYWORD2
+getHIBRTHibThr	KEYWORD2
+setHIBRTHibThr	KEYWORD2
+enableHibernate	KEYWORD2
+disableHibernate	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

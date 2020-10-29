@@ -574,7 +574,7 @@ uint8_t SFE_MAX1704X::getVALRTMax()
     {
       _debugPort->println(F("getVALRTMax: not supported on this device"));
     }
-    return (MAX17043_GENERIC_ERROR);
+    return (0);
   }
 
   uint16_t valrt = read16(MAX17048_CVALRT);
@@ -612,12 +612,133 @@ uint8_t SFE_MAX1704X::getVALRTMin()
     {
       _debugPort->println(F("getVALRTMin: not supported on this device"));
     }
-    return (MAX17043_GENERIC_ERROR);
+    return (0);
   }
 
   uint16_t valrt = read16(MAX17048_CVALRT);
   valrt >>= 8; // Shift min into LSB
   return ((uint8_t)valrt);
+}
+
+bool SFE_MAX1704X::isHibernating()
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("isHibernating: not supported on this device"));
+    }
+    return (false);
+  }
+
+  uint16_t mode = read16(MAX17043_MODE);
+  return ((mode & MAX17048_MODE_HIBSTAT) > 0);
+}
+
+uint8_t SFE_MAX1704X::getHIBRTActThr()
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getHIBRTActThr: not supported on this device"));
+    }
+    return (0);
+  }
+
+  uint16_t hibrt = read16(MAX17048_HIBRT);
+  hibrt &= 0x00FF; // Mask off Act bits
+  return ((uint8_t)hibrt);
+}
+
+uint8_t SFE_MAX1704X::setHIBRTActThr(uint8_t threshold)
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("setHIBRTActThr: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  uint16_t hibrt = read16(MAX17048_HIBRT);
+  hibrt &= 0xFF00; // Mask off Act bits
+  hibrt |= (uint16_t)threshold;
+  return write16(hibrt, MAX17048_HIBRT);
+}
+uint8_t SFE_MAX1704X::setHIBRTActThr(float threshold)
+{
+  // LSb = 1.25mV
+  uint8_t thresh = (uint8_t)(constrain(threshold, 0.0, 0.31875) / 0.00125);
+  return setHIBRTActThr(thresh);
+}
+
+uint8_t SFE_MAX1704X::getHIBRTHibThr()
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getHIBRTHibThr: not supported on this device"));
+    }
+    return (0);
+  }
+
+  uint16_t hibrt = read16(MAX17048_HIBRT);
+  hibrt >>= 8; // Shift HibThr into LSB
+  return ((uint8_t)hibrt);
+}
+
+uint8_t SFE_MAX1704X::setHIBRTHibThr(uint8_t threshold)
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("setHIBRTHibThr: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  uint16_t hibrt = read16(MAX17048_HIBRT);
+  hibrt &= 0x00FF; // Mask off Hib bits
+  hibrt |= ((uint16_t)threshold) << 8;
+  return write16(hibrt, MAX17048_HIBRT);
+}
+uint8_t SFE_MAX1704X::setHIBRTHibThr(float threshold)
+{
+  // LSb = 0.208%/hr
+  uint8_t thresh = (uint8_t)(constrain(threshold, 0.0, 53.04) / 0.208);
+  return setHIBRTHibThr(thresh);
+}
+
+uint8_t SFE_MAX1704X::enableHibernate()
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("enableHibernate: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  return write16(MAX17048_HIBRT_ENHIB, MAX17048_HIBRT);
+}
+
+uint8_t SFE_MAX1704X::disableHibernate()
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("disableHibernate: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  return write16(MAX17048_HIBRT_DISHIB, MAX17048_HIBRT);
 }
 
 uint8_t SFE_MAX1704X::write16(uint16_t data, uint8_t address)
