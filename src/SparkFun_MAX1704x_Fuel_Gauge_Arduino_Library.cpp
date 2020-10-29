@@ -181,6 +181,12 @@ uint8_t SFE_MAX1704X::setResetVoltage(uint8_t threshold)
 
   return write16(vreset, MAX17048_VRESET_ID);
 }
+uint8_t SFE_MAX1704X::setResetVoltage(float threshold)
+{
+  // 7 bits. LSb = 40mV
+  uint8_t thresh = (uint8_t)(constrain(threshold, 0.0, 5.08) / 0.04);
+  return setResetVoltage(thresh);
+}
 
 uint8_t SFE_MAX1704X::getResetVoltage(void)
 {

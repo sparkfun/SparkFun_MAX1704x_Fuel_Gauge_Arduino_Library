@@ -142,6 +142,7 @@ public:
 
   // getSOC() - Get the MAX17043's state-of-charge (SOC) reading, as calculated
   // by the IC's "ModelGauge" algorithm.
+  // The first update is available approximately 1s after POR of the IC.
   // Output: floating point value between 0-100, representing a percentage of
   // full charge.
   float getSOC();
@@ -228,7 +229,8 @@ public:
   // reset threshold for your application.
   // Input: [threshold] - Should be a value between 0-127.
   // Output: 0 on success, positive integer on fail.
-  uint8_t setResetVoltage(uint8_t threshold);
+  uint8_t setResetVoltage(uint8_t threshold = (0x96 >> 1));
+  uint8_t setResetVoltage(float threshold = 3.0); // Helper function: set threshold in Volts
 
   // getResetVoltage() - (MAX17048/49) Get the 7-bit VRESET value
   // Output: 7-bit value read from the VRESET/ID register's MSB.
