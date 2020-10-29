@@ -87,7 +87,7 @@ typedef enum {
 #define MAX1704x_STATUS_VR (1 << 3) // Assumes the MSB has been shifted >> 8
 #define MAX1704x_STATUS_HD (1 << 4) // Assumes the MSB has been shifted >> 8
 #define MAX1704x_STATUS_SC (1 << 5) // Assumes the MSB has been shifted >> 8
-#define MAX1704x_STATUS_EnVR (1 << 14)
+#define MAX1704x_STATUS_EnVR (1 << 14) // ** Unshifted **
 
 ////////////////////////////////////////
 // MAX17043 Command Register Commands //
@@ -160,9 +160,9 @@ public:
   // setThreshold([percent]) - Set the MAX17043's percentage threshold that will
   // trigger an alert.
   // Input: [percent] - Percentage value that will trigger an alert interrupt.
-  // Any value between 1 and 32 is valid.
+  // Any value between 1 and 32 is valid. Default value is 0x1C == 4%
   // Output: 0 on success, positive integer on fail.
-  uint8_t setThreshold(uint8_t percent);
+  uint8_t setThreshold(uint8_t percent = 4);
 
   // sleep() - Set the MAX17043 into sleep mode.
   // Output: 0 on success, positive integer on fail.
@@ -257,12 +257,14 @@ public:
   uint8_t getStatus();
 
   //(MAX17048/49) Various helper functions to check bits in status register
-  bool isReset();       //True after POR
-  bool isVoltageHigh(); //True when VCELL is above VALRTMAX (see setAlertMinVoltage)
-  bool isVoltageLow();
-  bool isVoltageReset();
-  bool isLow();    //True when SOC crosses the value in ATHD (see setThreshold)
-  bool isChange(); //True when SOC changes by at least 1%
+  // INPUT: [clear] - If [clear] is true, the alert flag will be cleared if it
+  // was set.
+  bool isReset(bool clear = false);       //True after POR
+  bool isVoltageHigh(bool clear = false); //True when VCELL is above VALRTMAX (see setAlertMinVoltage)
+  bool isVoltageLow(bool clear = false);
+  bool isVoltageReset(bool clear = false);
+  bool isLow(bool clear = false);    //True when SOC crosses the value in ATHD (see setThreshold)
+  bool isChange(bool clear = false); //True when SOC changes by at least 1% and SOCAlert is enabled
 
   // getAlert([clear]) - Check if the MAX1704X's ALRT alert interrupt has been
   // triggered.
@@ -366,6 +368,12 @@ private:
 
   Stream *_debugPort;          //The stream to send debug messages to if enabled. Usually Serial.
   boolean _printDebug = false; //Flag to print debugging variables
+
+  // Clear the specified bit(s) in the MAX17048/49 status register
+  // This requires the bits in mask to be correctly aligned.
+  // MAX1704x_STATUS_RI etc. will need to be shifted left by 8 bits to become aligned.
+  // Output: 0 on success, positive integer on fail.
+  uint8_t clearStatusRegBits(uint16_t mask);
 
   int _device = MAX1704X_MAX17043; // Default to MAX17043
   float _full_scale = 5.12; // Default: full-scale for the MAX17043

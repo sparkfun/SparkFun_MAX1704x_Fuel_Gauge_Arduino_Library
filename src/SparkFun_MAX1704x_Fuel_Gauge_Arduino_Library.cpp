@@ -266,35 +266,81 @@ uint8_t SFE_MAX1704X::getStatus(void)
   return (statusReg & 0x7F); //Highest bit is don't care
 }
 
-bool SFE_MAX1704X::isReset(void)
+bool SFE_MAX1704X::isReset(bool clear)
 {
   uint8_t status = getStatus();
-  return (status & MAX1704x_STATUS_RI);
+  bool flag = (status & MAX1704x_STATUS_RI) > 0;
+  if (flag && clear) // Clear the flag if requested
+  {
+    // Clear the aligned bit in the status register
+    clearStatusRegBits(MAX1704x_STATUS_RI << 8);
+  }
+  return (flag);
 }
-bool SFE_MAX1704X::isVoltageHigh(void)
+bool SFE_MAX1704X::isVoltageHigh(bool clear)
 {
   uint8_t status = getStatus();
-  return (status & MAX1704x_STATUS_VH);
+  bool flag = (status & MAX1704x_STATUS_VH) > 0;
+  if (flag && clear) // Clear the flag if requested
+  {
+    // Clear the aligned bit in the status register
+    clearStatusRegBits(MAX1704x_STATUS_VH << 8);
+  }
+  return (flag);
 }
-bool SFE_MAX1704X::isVoltageLow(void)
+bool SFE_MAX1704X::isVoltageLow(bool clear)
 {
   uint8_t status = getStatus();
-  return (status & MAX1704x_STATUS_VL);
+  bool flag = (status & MAX1704x_STATUS_VL) > 0;
+  if (flag && clear) // Clear the flag if requested
+  {
+    // Clear the aligned bit in the status register
+    clearStatusRegBits(MAX1704x_STATUS_VL << 8);
+  }
+  return (flag);
 }
-bool SFE_MAX1704X::isVoltageReset(void)
+bool SFE_MAX1704X::isVoltageReset(bool clear)
 {
   uint8_t status = getStatus();
-  return (status & MAX1704x_STATUS_VR);
+  bool flag = (status & MAX1704x_STATUS_VR) > 0;
+  if (flag && clear) // Clear the flag if requested
+  {
+    // Clear the aligned bit in the status register
+    clearStatusRegBits(MAX1704x_STATUS_VR << 8);
+  }
+  return (flag);
 }
-bool SFE_MAX1704X::isLow(void)
+bool SFE_MAX1704X::isLow(bool clear)
 {
   uint8_t status = getStatus();
-  return (status & MAX1704x_STATUS_HD);
+  bool flag = (status & MAX1704x_STATUS_HD) > 0;
+  if (flag && clear) // Clear the flag if requested
+  {
+    // Clear the aligned bit in the status register
+    clearStatusRegBits(MAX1704x_STATUS_HD << 8);
+  }
+  return (flag);
 }
-bool SFE_MAX1704X::isChange(void)
+bool SFE_MAX1704X::isChange(bool clear)
 {
   uint8_t status = getStatus();
-  return (status & MAX1704x_STATUS_SC);
+  bool flag = (status & MAX1704x_STATUS_SC) > 0;
+  if (flag && clear) // Clear the flag if requested
+  {
+    // Clear the aligned bit in the status register
+    clearStatusRegBits(MAX1704x_STATUS_SC << 8);
+  }
+  return (flag);
+}
+
+// Clear the specified bit in the MAX17048/49 status register (PRIVATE)
+// This requires the bits in mask to be correctly aligned.
+// MAX1704x_STATUS_RI etc. will need to be shifted left by 8 bits to become aligned.
+uint8_t SFE_MAX1704X::clearStatusRegBits(uint16_t mask)
+{
+  uint16_t statusReg = read16(MAX17048_STATUS);
+  statusReg &= ~mask; // Clear the specified bits
+  return (write16(statusReg, MAX17048_STATUS)); // Write the contents back again
 }
 
 uint8_t SFE_MAX1704X::clearAlert()
