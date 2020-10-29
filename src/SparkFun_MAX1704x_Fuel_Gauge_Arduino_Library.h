@@ -190,6 +190,20 @@ public:
   // is an obscure 8-bit value that has some effect on Maxim's ModelGauge
   // algorithm. The POR value of RCOMP is 0x97.
   // From the datasheet: "Contact Maxim for instructions for optimization."
+  // For best performance, the host microcontroller must measure
+  // battery temperature periodically, and compensate
+  // the RCOMP ModelGauge parameter accordingly, at least
+  // once per minute. Each custom model defines constants
+  // RCOMP0 (default is 0x97), TempCoUp (default is -0.5),
+  // and TempCoDown (default is -5.0). To calculate the new
+  // value of CONFIG.RCOMP:
+  // // T is battery temperature (degrees Celsius)
+  // if (T > 20) {
+  // RCOMP = RCOMP0 + (T - 20) x TempCoUp;
+  // }
+  // else {
+  // RCOMP = RCOMP0 + (T - 20) x TempCoDown;
+  // }
   // Input: [newCompensation] - Should be a value between 0-255.
   // Output: 0 on success, positive integer on fail.
   uint8_t setCompensation(uint8_t newCompensation = 0x97);
