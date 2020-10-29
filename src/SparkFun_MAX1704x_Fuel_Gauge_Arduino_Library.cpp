@@ -291,6 +291,92 @@ bool SFE_MAX1704X::isChange(void)
   return (status & MAX1704x_STATUS_SC);
 }
 
+uint8_t SFE_MAX1704X::clearAlert()
+{
+  // Read config reg, so we don't modify any other values:
+  uint16_t configReg = read16(MAX17043_CONFIG);
+  configReg &= ~MAX17043_CONFIG_ALERT; // Clear ALRT bit manually.
+
+  return write16(configReg, MAX17043_CONFIG);
+}
+
+// getAlert([clear]) - Check if the MAX1704X's ALRT alert interrupt has been
+// triggered.
+// INPUT: [clear] - If [clear] is true, the alert flag will be cleared if it
+// was set.
+// OUTPUT: Returns 1 if interrupt is/was triggered, 0 if not.
+uint8_t SFE_MAX1704X::getAlert(bool clear)
+{
+  // Read config reg, so we don't modify any other values:
+  uint16_t configReg = read16(MAX17043_CONFIG);
+  if (configReg & MAX17043_CONFIG_ALERT)
+  {
+    if (clear) // If the clear flag is set
+    {
+      configReg &= ~MAX17043_CONFIG_ALERT; // Clear ALRT bit manually.
+      write16(configReg, MAX17043_CONFIG);
+    }
+    return 1;
+  }
+
+  return 0;
+}
+
+// clearSOCAlert() - (MAX17048/49) Clear the SOC alert flag.
+// Output: 0 on success, positive integer on fail.
+uint8_t SFE_MAX1704X::clearSOCAlert()
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("clearSOCAlert: not supported on this device"));
+    }
+    return (MAX17043_GENERIC_ERROR);
+  }
+
+  // Read config reg, so we don't modify any other values:
+  uint16_t configReg = read16(MAX17043_CONFIG);
+  configReg &= ~MAX17043_CONFIG_ALSC; // Clear ALSC bit manually.
+
+  return write16(configReg, MAX17043_CONFIG);
+}
+
+// getSOCAlert([clear]) - (MAX17048/49) Check if the SOC alert interrupt has been
+// triggered.
+// INPUT: [clear] - If [clear] is true, the SOC alert flag will be cleared if it
+// was set.
+// OUTPUT: Returns 1 if interrupt is/was triggered, 0 if not.
+uint8_t SFE_MAX1704X::getSOCAlert(bool clear)
+{
+  if (_device <= MAX1704X_MAX17044)
+  {
+    if (_printDebug == true)
+    {
+      _debugPort->println(F("getSOCAlert: not supported on this device"));
+    }
+    return (0);
+  }
+
+  // Read config reg, so we don't modify any other values:
+  uint16_t configReg = read16(MAX17043_CONFIG);
+  if (configReg & MAX17043_CONFIG_ALSC)
+  {
+    if (clear) // If the clear flag is set
+    {
+      configReg &= ~MAX17043_CONFIG_ALSC; // Clear ALSC bit manually.
+      write16(configReg, MAX17043_CONFIG);
+    }
+    return 1;
+  }
+
+  return 0;
+}
+
+// Enable or Disable MAX17048 VRESET Alert:
+//  EnVr (enable voltage reset alert) when set to 1 asserts
+//  the ALRT pin when a voltage-reset event occurs under
+//  the conditions described by the VRESET/ ID register.
 uint8_t SFE_MAX1704X::enableAlert(void)
 {
   if (_device <= MAX1704X_MAX17044)
@@ -329,7 +415,7 @@ uint8_t SFE_MAX1704X::getThreshold()
   uint8_t threshold = (configReg & 0x001F);
 
   // It has an LSb weight of 1%, and can be programmed from 1% to 32%.
-  // Values are in 2's complement, e.g.: 00000=32%, 00001=31%, 11111=1%.
+  // The value is (32 - ATHD)%, e.g.: 00000=32%, 00001=31%, 11111=1%.
   // Let's convert our percent to that first:
   threshold = 32 - threshold;
   return threshold;
@@ -341,7 +427,7 @@ uint8_t SFE_MAX1704X::setThreshold(uint8_t percent)
   // where an interrupt is generated on the ALRT pin.
 
   // It has an LSb weight of 1%, and can be programmed from 1% to 32%.
-  // Values are in 2's complement, e.g.: 00000=32%, 00001=31%, 11111=1%.
+  // The value is (32 - ATHD)%, e.g.: 00000=32%, 00001=31%, 11111=1%.
   // Let's convert our percent to that first:
   percent = constrain(percent, 0, 32);
   percent = 32 - percent;
@@ -352,32 +438,6 @@ uint8_t SFE_MAX1704X::setThreshold(uint8_t percent)
   configReg |= percent; // Add new threshold
 
   return write16(configReg, MAX17043_CONFIG);
-}
-
-uint8_t SFE_MAX1704X::clearAlert()
-{
-  // Read config reg, so we don't modify any other values:
-  uint16_t configReg = read16(MAX17043_CONFIG);
-  configReg &= ~MAX17043_CONFIG_ALERT; // Clear ALRT bit manually.
-
-  return write16(configReg, MAX17043_CONFIG);
-}
-
-uint8_t SFE_MAX1704X::getAlert(bool clear)
-{
-  // Read config reg, so we don't modify any other values:
-  uint16_t configReg = read16(MAX17043_CONFIG);
-  if (configReg & MAX17043_CONFIG_ALERT)
-  {
-    if (clear) // If the clear flag is set
-    {
-      configReg &= ~MAX17043_CONFIG_ALERT; // Clear ALRT bit manually.
-      write16(configReg, MAX17043_CONFIG);
-    }
-    return 1;
-  }
-
-  return 0;
 }
 
 // In sleep mode, the IC halts all operations, reducing current
@@ -444,6 +504,13 @@ uint8_t SFE_MAX1704X::wake()
   }
 }
 
+// Writing a value of 0x5400 to the CMD Register causes
+// the device to completely reset as if power had been
+// removed (see the Power-On Reset (POR) section). The
+// reset occurs when the last bit has been clocked in. The
+// IC does not respond with an I2C ACK after this command
+// sequence.
+// Output: Positive integer on success, 0 on fail.
 uint8_t SFE_MAX1704X::reset()
 {
   return write16(MAX17043_COMMAND_POR, MAX17043_COMMAND);

@@ -68,25 +68,25 @@ void setup()
 
 void loop()
 {
-	// lipo.getVoltage() returns a voltage value (e.g. 3.93)
-	voltage = lipo.getVoltage();
-	// lipo.getSOC() returns the estimated state of charge (e.g. 79%)
-	soc = lipo.getSOC();
-	// lipo.getAlert() returns a 0 or 1 (0=alert not triggered)
-	alert = lipo.getAlert();
+  // lipo.getVoltage() returns a voltage value (e.g. 3.93)
+  voltage = lipo.getVoltage();
+  // lipo.getSOC() returns the estimated state of charge (e.g. 79%)
+  soc = lipo.getSOC();
+  // lipo.getAlert() returns a 0 or 1 (0=alert not triggered)
+  alert = lipo.getAlert();
 
-	// Print the variables:
-	mySerial.print("Voltage: ");
-	mySerial.print(voltage);  // Print the battery voltage
-	mySerial.println(" V");
+  // Print the variables:
+  mySerial.print("Voltage: ");
+  mySerial.print(voltage);  // Print the battery voltage
+  mySerial.println(" V");
 
-	mySerial.print("Alert: ");
-	mySerial.println(alert);
+  mySerial.print("Percentage: ");
+  mySerial.print(soc); // Print the battery state of charge
+  mySerial.println(" %");
 
-	mySerial.print("Percentage: ");
-	mySerial.print(soc); // Print the battery state of charge
-	mySerial.println(" %");
-	mySerial.println();
+  mySerial.print("Alert: ");
+  mySerial.println(alert);
+  mySerial.println();
 
-	delay(500);
+  delay(500);
 }

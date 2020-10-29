@@ -75,12 +75,12 @@ void loop()
 	Serial.print(voltage);  // Print the battery voltage
 	Serial.println(" V");
 
-	Serial.print("Alert: ");
-	Serial.println(alert);
-
 	Serial.print("Percentage: ");
 	Serial.print(soc); // Print the battery state of charge
 	Serial.println(" %");
+
+  Serial.print("Alert: ");
+  Serial.println(alert);
 	Serial.println();
 
 	delay(500);

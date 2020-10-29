@@ -63,6 +63,7 @@ typedef enum {
 // MAX17043 Config Register Bits //
 ///////////////////////////////////
 #define MAX17043_CONFIG_SLEEP (1 << 7)
+#define MAX17043_CONFIG_ALSC (1 << 6) // MAX17048 only
 #define MAX17043_CONFIG_ALERT (1 << 5)
 #define MAX17043_CONFIG_THRESHOLD 0
 
@@ -156,17 +157,6 @@ public:
   // Output: 0 on success, positive integer on fail.
   uint8_t setThreshold(uint8_t percent);
 
-  // getAlert([clear]) - Check if the MAX17043's alert interrupt has been
-  // triggered.
-  // INPUT: [clear] - If [clear] is true, the alert flag will be cleared if it
-  // was set.
-  // OUTPUT: Returns 1 if interrupt is/was triggered, 0 if not.
-  uint8_t getAlert(bool clear = false);
-
-  // clearAlert() - Clear the MAX17043's alert flag.
-  // Output: 0 on success, positive integer on fail.
-  uint8_t clearAlert();
-
   // sleep() - Set the MAX17043 into sleep mode.
   // Output: 0 on success, positive integer on fail.
   // In sleep mode, the IC halts all operations, reducing current
@@ -212,6 +202,10 @@ public:
   // setResetVoltage([threshold]) - (MAX17048/49) Set the 7-bit VRESET value.
   // A 7-bit value that controls the comparator for detecting when
   // a battery is detached and re-connected. 40mV per bit. Default is 3.0V.
+  // For captive batteries, set to 2.5V. For
+  // removable batteries, set to at least 300mV below the
+  // application’s empty voltage, according to the desired
+  // reset threshold for your application.
   // Input: [threshold] - Should be a value between 0-127.
   // Output: 0 on success, positive integer on fail.
   uint8_t setResetVoltage(uint8_t threshold);
@@ -248,16 +242,37 @@ public:
   bool isLow();    //True when SOC crosses the value in ATHD (see setThreshold)
   bool isChange(); //True when SOL changes by at least 1%
 
-  // softReset() - (MAX17048/49) Writes 0x5400 to CMD register (0xFE)
-  // Initiates a power on reset. May also work with MAX17043/44 but requires 0x0054?
-  // Output: None
-  void softReset();
+  // getAlert([clear]) - Check if the MAX1704X's ALRT alert interrupt has been
+  // triggered.
+  // INPUT: [clear] - If [clear] is true, the alert flag will be cleared if it
+  // was set.
+  // OUTPUT: Returns 1 if interrupt is/was triggered, 0 if not.
+  uint8_t getAlert(bool clear = false);
 
-  // enableAlert() - (MAX17048/49) Set bit in STATUS register 0x1A
-  // Enable/disable the assertion of the !ALRT! pin when a voltage-reset
-  // event occurs under the conditions set by VRESET/ID register (see setResetVoltage)
+  // clearAlert() - Clear the MAX1704X's ALRT alert flag.
+  // Output: 0 on success, positive integer on fail.
+  uint8_t clearAlert();
+
+  // getSOCAlert([clear]) - (MAX17048/49) Check if the SOC alert interrupt has been
+  // triggered.
+  // INPUT: [clear] - If [clear] is true, the SOC alert flag will be cleared if it
+  // was set.
+  // OUTPUT: Returns 1 if interrupt is/was triggered, 0 if not.
+  uint8_t getSOCAlert(bool clear = false);
+
+  // clearSOCAlert() - (MAX17048/49) Clear the SOC alert flag.
+  // Output: 0 on success, positive integer on fail.
+  uint8_t clearSOCAlert();
+
+  // Enable or Disable MAX17048 VRESET Alert:
+  //  EnVr (enable voltage reset alert) when set to 1 asserts
+  //  the ALRT pin when a voltage-reset event occurs under
+  //  the conditions described by the VRESET/ ID register.
+  // enableAlert() - Set ENvR bit in STATUS register 0x1A
   // Output: 0 on success, positive integer on fail.
   uint8_t enableAlert();
+  // disableAlert() - Clear the ENvR bit in STATUS register 0x1A
+  // Output: 0 on success, positive integer on fail.
   uint8_t disableAlert();
 
   //Lower level functions but exposed incase user wants them
