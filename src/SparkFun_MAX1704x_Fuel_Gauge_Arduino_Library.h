@@ -188,11 +188,11 @@ public:
 
   // setCompensation([newCompensation]) - Set the 8-bit compensation value. This
   // is an obscure 8-bit value that has some effect on Maxim's ModelGauge
-  // algorithm.
+  // algorithm. The POR value of RCOMP is 0x97.
   // From the datasheet: "Contact Maxim for instructions for optimization."
   // Input: [newCompensation] - Should be a value between 0-255.
   // Output: 0 on success, positive integer on fail.
-  uint8_t setCompensation(uint8_t newCompensation);
+  uint8_t setCompensation(uint8_t newCompensation = 0x97);
 
   // getID() - (MAX17048/49) Returns 8-bit OTP bits set at factory. Can be used to
   // 'to distinguish multiple cell types in production'.

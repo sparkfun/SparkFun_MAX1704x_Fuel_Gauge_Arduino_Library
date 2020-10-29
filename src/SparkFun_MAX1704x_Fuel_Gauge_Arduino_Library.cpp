@@ -535,7 +535,7 @@ uint8_t SFE_MAX1704X::setCompensation(uint8_t newCompensation)
   // Read the original configReg, so we can leave the lower 8 bits alone:
   uint16_t configReg = read16(MAX17043_CONFIG);
   configReg &= 0x00FF; // Mask out compensation bits
-  configReg |= ((uint16_t)newCompensation << 8) | configReg; // TO DO: remove duplicate OR
+  configReg |= ((uint16_t)newCompensation) << 8;
   return write16(configReg, MAX17043_CONFIG);
 }
 
