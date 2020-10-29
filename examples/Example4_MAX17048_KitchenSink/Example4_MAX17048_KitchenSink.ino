@@ -161,10 +161,10 @@ void loop()
   Serial.print(lipo.getAlert()); // Print the generic alert flag
 
   Serial.print(" Voltage High Alert: ");
-  Serial.println(lipo.isVoltageHigh()); // Print the alert flag
+  Serial.print(lipo.isVoltageHigh()); // Print the alert flag
 
   Serial.print(" Voltage Low Alert: ");
-  Serial.println(lipo.isVoltageLow()); // Print the alert flag
+  Serial.print(lipo.isVoltageLow()); // Print the alert flag
 
   Serial.print(" Empty Alert: ");
   Serial.print(lipo.isLow()); // Print the alert flag
