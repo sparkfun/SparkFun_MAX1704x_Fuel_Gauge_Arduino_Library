@@ -826,8 +826,18 @@ uint16_t SFE_MAX1704X::read16(uint8_t address)
     else
     {
       retries--;
+      if (_printDebug == true)
+      {
+        _debugPort->println(F("SFE_MAX1704X::read16: retrying..."));
+      }
       delay(50);
     }
+  }
+
+  if (_printDebug == true)
+  {
+    if (!success)
+      _debugPort->println(F("SFE_MAX1704X::read16: failed to read data!"));
   }
 
   return (result);
