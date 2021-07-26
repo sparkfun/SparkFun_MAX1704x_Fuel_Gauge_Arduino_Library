@@ -806,18 +806,29 @@ uint8_t SFE_MAX1704X::write16(uint16_t data, uint8_t address)
 
 uint16_t SFE_MAX1704X::read16(uint8_t address)
 {
-  uint8_t msb, lsb;
-  int16_t timeout = 1000;
+  bool success = false;
+  uint8_t retries = 3;
+  uint16_t result = 0;
 
-  _i2cPort->beginTransmission(MAX1704x_ADDRESS);
-  _i2cPort->write(address);
-  _i2cPort->endTransmission(false);
+  while ((success == false) && (retries > 0))
+  {
+    _i2cPort->beginTransmission(MAX1704x_ADDRESS);
+    _i2cPort->write(address);
+    _i2cPort->endTransmission(false); // Don't release the bus
 
-  _i2cPort->requestFrom(MAX1704x_ADDRESS, 2);
-  while ((_i2cPort->available() < 2) && (timeout-- > 0))
-    delay(1);
-  msb = _i2cPort->read();
-  lsb = _i2cPort->read();
+    if (_i2cPort->requestFrom(MAX1704x_ADDRESS, 2) == 2)
+    {
+      uint8_t msb = _i2cPort->read();
+      uint8_t lsb = _i2cPort->read();
+      result = ((uint16_t)msb << 8) | lsb;
+      success = true;
+    }
+    else
+    {
+      retries--;
+      delay(50);
+    }
+  }
 
-  return ((uint16_t)msb << 8) | lsb;
+  return (result);
 }
