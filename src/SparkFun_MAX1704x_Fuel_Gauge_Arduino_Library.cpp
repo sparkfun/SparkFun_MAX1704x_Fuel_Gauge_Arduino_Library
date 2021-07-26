@@ -480,7 +480,7 @@ uint8_t SFE_MAX1704X::setThreshold(uint8_t percent)
   // It has an LSb weight of 1%, and can be programmed from 1% to 32%.
   // The value is (32 - ATHD)%, e.g.: 00000=32%, 00001=31%, 11111=1%.
   // Let's convert our percent to that first:
-  percent = constrain(percent, 0, 32);
+  percent = (uint8_t)constrain((float)percent, 0.0, 32.0);
   percent = 32 - percent;
 
   // Read config reg, so we don't modify any other values:
