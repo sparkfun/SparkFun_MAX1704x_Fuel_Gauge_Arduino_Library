@@ -61,19 +61,60 @@ boolean SFE_MAX1704X::begin(TwoWire &wirePort)
   return (true);
 }
 
-//Returns true if device answers on _deviceAddress
+//Returns true if device is present
 boolean SFE_MAX1704X::isConnected(void)
 {
-  _i2cPort->beginTransmission((uint8_t)MAX1704x_ADDRESS);
-  if (_i2cPort->endTransmission() == 0)
+  //Updated to resolve issue #4 Dec 27th 2021
+  //Also avoid using the standard "if device answers on _deviceAddress" test
+  //(https://github.com/sparkfun/Arduino_Apollo3/issues/400#issuecomment-992631994)
+  bool success = false;
+  uint8_t retries = 3;
+  uint16_t version = 0;
+
+  while ((success == false) && (retries > 0))
+  {
+    _i2cPort->beginTransmission(MAX1704x_ADDRESS);
+    _i2cPort->write(MAX17043_VERSION); // Attempt to read the version register
+    _i2cPort->endTransmission(false); // Don't release the bus
+
+    if (_i2cPort->requestFrom(MAX1704x_ADDRESS, 2) == 2) // Attempt to read the version (2 bytes)
+    {
+      uint8_t msb = _i2cPort->read();
+      uint8_t lsb = _i2cPort->read();
+      version = ((uint16_t)msb << 8) | lsb;
+      success = true;
+    }
+    else
+    {
+      retries--;
+      if (_printDebug == true)
+      {
+        _debugPort->println(F("SFE_MAX1704X::isConnected: retrying..."));
+      }
+      delay(50);
+    }
+  }
+
+  if (!success) // Return now if the version could not be read
+  {
+    if (_printDebug == true)
+    {
+        _debugPort->println(F("SFE_MAX1704X::isConnected: failed to detect IC!"));
+    }
+    return (success);
+  }
+
+  //Extra test - but only for MAX17048/9 - see issue #4
+  if (_device >= MAX1704X_MAX17048)
   {
     //Get version should return 0x001_
     //Not a great test but something
-    //Supported on 43/44/48/49
-    if (getVersion() & (1 << 4))
-      return true;
+    //Supported on 48/49
+    if ((version & (1 << 4)) == 0)
+      success = false;
   }
-  return false;
+
+  return (success);
 }
 
 //Enable or disable the printing of debug messages
@@ -480,7 +521,7 @@ uint8_t SFE_MAX1704X::setThreshold(uint8_t percent)
   // It has an LSb weight of 1%, and can be programmed from 1% to 32%.
   // The value is (32 - ATHD)%, e.g.: 00000=32%, 00001=31%, 11111=1%.
   // Let's convert our percent to that first:
-  percent = constrain(percent, 0, 32);
+  percent = (uint8_t)constrain((float)percent, 0.0, 32.0);
   percent = 32 - percent;
 
   // Read config reg, so we don't modify any other values:
@@ -806,18 +847,39 @@ uint8_t SFE_MAX1704X::write16(uint16_t data, uint8_t address)
 
 uint16_t SFE_MAX1704X::read16(uint8_t address)
 {
-  uint8_t msb, lsb;
-  int16_t timeout = 1000;
+  bool success = false;
+  uint8_t retries = 3;
+  uint16_t result = 0;
 
-  _i2cPort->beginTransmission(MAX1704x_ADDRESS);
-  _i2cPort->write(address);
-  _i2cPort->endTransmission(false);
+  while ((success == false) && (retries > 0))
+  {
+    _i2cPort->beginTransmission(MAX1704x_ADDRESS);
+    _i2cPort->write(address);
+    _i2cPort->endTransmission(false); // Don't release the bus
 
-  _i2cPort->requestFrom(MAX1704x_ADDRESS, 2);
-  while ((_i2cPort->available() < 2) && (timeout-- > 0))
-    delay(1);
-  msb = _i2cPort->read();
-  lsb = _i2cPort->read();
+    if (_i2cPort->requestFrom(MAX1704x_ADDRESS, 2) == 2)
+    {
+      uint8_t msb = _i2cPort->read();
+      uint8_t lsb = _i2cPort->read();
+      result = ((uint16_t)msb << 8) | lsb;
+      success = true;
+    }
+    else
+    {
+      retries--;
+      if (_printDebug == true)
+      {
+        _debugPort->println(F("SFE_MAX1704X::read16: retrying..."));
+      }
+      delay(50);
+    }
+  }
 
-  return ((uint16_t)msb << 8) | lsb;
+  if (_printDebug == true)
+  {
+    if (!success)
+      _debugPort->println(F("SFE_MAX1704X::read16: failed to read data!"));
+  }
+
+  return (result);
 }

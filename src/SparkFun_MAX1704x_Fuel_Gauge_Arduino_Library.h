@@ -123,7 +123,7 @@ public:
   // begin() - Initializes the MAX17043.
   boolean begin(TwoWire &wirePort = Wire); //Returns true if module is detected
 
-  //Returns true if device answers on MAX1704x_ADDRESS
+  //Returns true if device is present
   boolean isConnected(void);
 
   // Debug
