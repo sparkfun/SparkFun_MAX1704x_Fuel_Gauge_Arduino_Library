@@ -51,10 +51,12 @@ boolean SFE_MAX1704X::begin(TwoWire &wirePort)
 
   if (isConnected() == false)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("begin: isConnected returned false"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (false);
   }
 
@@ -87,20 +89,24 @@ boolean SFE_MAX1704X::isConnected(void)
     else
     {
       retries--;
+      #if MAX1704X_ENABLE_DEBUGLOG
       if (_printDebug == true)
       {
         _debugPort->println(F("SFE_MAX1704X::isConnected: retrying..."));
       }
+      #endif // if MAX1704X_ENABLE_DEBUGLOG
       delay(50);
     }
   }
 
   if (!success) // Return now if the version could not be read
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
         _debugPort->println(F("SFE_MAX1704X::isConnected: failed to detect IC!"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (success);
   }
 
@@ -120,13 +126,17 @@ boolean SFE_MAX1704X::isConnected(void)
 //Enable or disable the printing of debug messages
 void SFE_MAX1704X::enableDebugging(Stream &debugPort)
 {
+  #if MAX1704X_ENABLE_DEBUGLOG
   _debugPort = &debugPort; //Grab which port the user wants us to use for debugging
   _printDebug = true;      //Should we print the commands we send? Good for debugging
+  #endif // if MAX1704X_ENABLE_DEBUGLOG
 }
 
 void SFE_MAX1704X::disableDebugging(void)
 {
+  #if MAX1704X_ENABLE_DEBUGLOG
   _printDebug = false; //Turn off extra print statements
+  #endif // if MAX1704X_ENABLE_DEBUGLOG
 }
 
 uint8_t SFE_MAX1704X::quickStart()
@@ -192,10 +202,12 @@ uint8_t SFE_MAX1704X::getID()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("getID: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (0);
   }
 
@@ -209,10 +221,12 @@ uint8_t SFE_MAX1704X::setResetVoltage(uint8_t threshold)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("setResetVoltage: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -233,10 +247,12 @@ uint8_t SFE_MAX1704X::getResetVoltage(void)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("getResetVoltage: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (0);
   }
 
@@ -248,10 +264,12 @@ uint8_t SFE_MAX1704X::enableComparator(void)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("enableComparator: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -264,10 +282,12 @@ uint8_t SFE_MAX1704X::disableComparator(void)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("disableComparator: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -280,10 +300,12 @@ float SFE_MAX1704X::getChangeRate(void)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("getChangeRate: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (0.0);
   }
 
@@ -296,10 +318,12 @@ uint8_t SFE_MAX1704X::getStatus(void)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("getStatus: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (0);
   }
 
@@ -421,10 +445,12 @@ bool SFE_MAX1704X::enableSOCAlert()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("enableSOCAlert: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (false);
   }
 
@@ -446,10 +472,12 @@ bool SFE_MAX1704X::disableSOCAlert()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("disableSOCAlert: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (false);
   }
 
@@ -473,10 +501,12 @@ uint8_t SFE_MAX1704X::enableAlert(void)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("enableAlert: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -489,10 +519,12 @@ uint8_t SFE_MAX1704X::disableAlert(void)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("disableAlert: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -552,10 +584,12 @@ uint8_t SFE_MAX1704X::sleep()
   uint16_t configReg = read16(MAX17043_CONFIG);
   if (configReg & MAX17043_CONFIG_SLEEP)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("sleep: MAX17043 is already sleeping!"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return MAX17043_GENERIC_ERROR; // Already sleeping, do nothing but return an error
   }
 
@@ -570,10 +604,12 @@ uint8_t SFE_MAX1704X::wake()
   uint16_t configReg = read16(MAX17043_CONFIG);
   if (!(configReg & MAX17043_CONFIG_SLEEP))
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("wake: MAX17043 is already awake!"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return MAX17043_GENERIC_ERROR; // Already sleeping, do nothing but return an error
   }
   configReg &= ~MAX17043_CONFIG_SLEEP; // Clear sleep bit
@@ -640,10 +676,12 @@ uint8_t SFE_MAX1704X::setVALRTMax(uint8_t threshold)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("setVALRTMax: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -662,10 +700,12 @@ uint8_t SFE_MAX1704X::getVALRTMax()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("getVALRTMax: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (0);
   }
 
@@ -678,10 +718,12 @@ uint8_t SFE_MAX1704X::setVALRTMin(uint8_t threshold)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("setVALRTMin: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -700,10 +742,12 @@ uint8_t SFE_MAX1704X::getVALRTMin()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("getVALRTMin: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (0);
   }
 
@@ -716,10 +760,12 @@ bool SFE_MAX1704X::isHibernating()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("isHibernating: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (false);
   }
 
@@ -731,10 +777,12 @@ uint8_t SFE_MAX1704X::getHIBRTActThr()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("getHIBRTActThr: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (0);
   }
 
@@ -747,10 +795,12 @@ uint8_t SFE_MAX1704X::setHIBRTActThr(uint8_t threshold)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("setHIBRTActThr: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -770,10 +820,12 @@ uint8_t SFE_MAX1704X::getHIBRTHibThr()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("getHIBRTHibThr: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (0);
   }
 
@@ -786,10 +838,12 @@ uint8_t SFE_MAX1704X::setHIBRTHibThr(uint8_t threshold)
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("setHIBRTHibThr: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -809,10 +863,12 @@ uint8_t SFE_MAX1704X::enableHibernate()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("enableHibernate: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -823,10 +879,12 @@ uint8_t SFE_MAX1704X::disableHibernate()
 {
   if (_device <= MAX1704X_MAX17044)
   {
+    #if MAX1704X_ENABLE_DEBUGLOG
     if (_printDebug == true)
     {
       _debugPort->println(F("disableHibernate: not supported on this device"));
     }
+    #endif // if MAX1704X_ENABLE_DEBUGLOG
     return (MAX17043_GENERIC_ERROR);
   }
 
@@ -867,19 +925,23 @@ uint16_t SFE_MAX1704X::read16(uint8_t address)
     else
     {
       retries--;
+      #if MAX1704X_ENABLE_DEBUGLOG
       if (_printDebug == true)
       {
         _debugPort->println(F("SFE_MAX1704X::read16: retrying..."));
       }
+      #endif // if MAX1704X_ENABLE_DEBUGLOG
       delay(50);
     }
   }
 
+  #if MAX1704X_ENABLE_DEBUGLOG
   if (_printDebug == true)
   {
     if (!success)
       _debugPort->println(F("SFE_MAX1704X::read16: failed to read data!"));
   }
+  #endif // if MAX1704X_ENABLE_DEBUGLOG
 
   return (result);
 }
