@@ -21,6 +21,10 @@ Distributed as-is; no warranty is given.
 #ifndef MAX1704X_ARDUINO_LIBRARY_H
 #define MAX1704X_ARDUINO_LIBRARY_H
 
+// Uncomment the next #define to EXclude any debug logging from the code, by default debug logging code will be included
+
+// #define MAX1704X_ENABLE_DEBUGLOG 0 // OFF/disabled/excluded on demand
+
 #if (ARDUINO >= 100)
 #include "Arduino.h"
 #else
@@ -28,6 +32,15 @@ Distributed as-is; no warranty is given.
 #endif
 
 #include <Wire.h>
+
+//Enable/disable including debug log (to allow saving some space)
+#ifndef MAX1704X_ENABLE_DEBUGLOG
+  #if defined(LIBRARIES_NO_LOG) && LIBRARIES_NO_LOG
+    #define MAX1704X_ENABLE_DEBUGLOG 0 // OFF/disabled/excluded on demand
+  #else
+    #define MAX1704X_ENABLE_DEBUGLOG 1 // ON/enabled/included by default
+  #endif
+#endif
 
 //#include "application.h"
 
@@ -366,8 +379,10 @@ private:
   //Variables
   TwoWire *_i2cPort; //The generic connection to user's chosen I2C hardware
 
+  #if MAX1704X_ENABLE_DEBUGLOG
   Stream *_debugPort;          //The stream to send debug messages to if enabled. Usually Serial.
   boolean _printDebug = false; //Flag to print debugging variables
+  #endif // if MAX1704X_ENABLE_DEBUGLOG
 
   // Clear the specified bit(s) in the MAX17048/49 status register
   // This requires the bits in mask to be correctly aligned.
