@@ -133,11 +133,17 @@ class SFE_MAX1704X
 public:
   SFE_MAX1704X(sfe_max1704x_devices_e device = MAX1704X_MAX17043); // Default to the 5V MAX17043
 
+  // Change the device type if required. Do this after instantiation but before .begin
+  void setDevice(sfe_max1704x_devices_e device);
+
+  // Allow _i2CPort to be set manually, so that isConnected can be called before .begin if required
+  void setWirePort(TwoWire &wirePort);
+
   // begin() - Initializes the MAX17043.
-  boolean begin(TwoWire &wirePort = Wire); //Returns true if module is detected
+  bool begin(TwoWire &wirePort = Wire); //Returns true if module is detected
 
   //Returns true if device is present
-  boolean isConnected(void);
+  bool isConnected(void);
 
   // Debug
   void enableDebugging(Stream &debugPort = Serial); // enable debug messages
@@ -381,7 +387,7 @@ private:
 
   #if MAX1704X_ENABLE_DEBUGLOG
   Stream *_debugPort;          //The stream to send debug messages to if enabled. Usually Serial.
-  boolean _printDebug = false; //Flag to print debugging variables
+  bool _printDebug = false; //Flag to print debugging variables
   #endif // if MAX1704X_ENABLE_DEBUGLOG
 
   // Clear the specified bit(s) in the MAX17048/49 status register

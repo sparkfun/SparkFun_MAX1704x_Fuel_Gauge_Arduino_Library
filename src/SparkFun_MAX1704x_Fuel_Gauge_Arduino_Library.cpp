@@ -23,7 +23,12 @@ Distributed as-is; no warranty is given.
 SFE_MAX1704X::SFE_MAX1704X(sfe_max1704x_devices_e device)
 {
   // Constructor
+  setDevice(device);
+}
 
+// Change the device type if required. Do this after instantiation but before .begin
+void SFE_MAX1704X::setDevice(sfe_max1704x_devices_e device)
+{
   // Record the device type
   _device = device;
 
@@ -45,9 +50,9 @@ SFE_MAX1704X::SFE_MAX1704X(sfe_max1704x_devices_e device)
   }
 }
 
-boolean SFE_MAX1704X::begin(TwoWire &wirePort)
+bool SFE_MAX1704X::begin(TwoWire &wirePort)
 {
-  _i2cPort = &wirePort; //Grab which port the user wants us to use
+  setWirePort(wirePort); //Grab which port the user wants us to use
 
   if (isConnected() == false)
   {
@@ -63,8 +68,14 @@ boolean SFE_MAX1704X::begin(TwoWire &wirePort)
   return (true);
 }
 
+// Allow _i2CPort to be set manually, so that isConnected can be called before .begin if required
+void SFE_MAX1704X::setWirePort(TwoWire &wirePort)
+{
+  _i2cPort = &wirePort; //Grab which port the user wants us to use
+}
+
 //Returns true if device is present
-boolean SFE_MAX1704X::isConnected(void)
+bool SFE_MAX1704X::isConnected(void)
 {
   //Updated to resolve issue #4 Dec 27th 2021
   //Also avoid using the standard "if device answers on _deviceAddress" test
