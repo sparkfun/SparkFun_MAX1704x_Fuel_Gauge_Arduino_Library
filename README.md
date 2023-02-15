@@ -27,7 +27,9 @@ Parts of this library were inspired by [Daniel Porrey's max1704x library](https:
 
 ## Products That Use This Library
 
+- [SparkFun LiPo Fuel Gauge (TOL-20680)](https://www.sparkfun.com/products/20680)
 - [SparkFun LiPo Fuel Gauge (TOL-10617)](https://www.sparkfun.com/products/10617)
+
 
 ## Documentation
 
