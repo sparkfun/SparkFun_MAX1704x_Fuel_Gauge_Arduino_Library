@@ -27,6 +27,8 @@ Parts of this library were inspired by [Daniel Porrey's max1704x library](https:
 
 ## Products That Use This Library
 
+- [Qduino Mini - Arduino Dev Board (DEV-13614)](https://www.sparkfun.com/products/13614) 
+- [SparkFun IoT RedBoard - ESP32 Development Board (WRL-19177)](https://www.sparkfun.com/products/19177)
 - [SparkFun LiPo Fuel Gauge (TOL-20680)](https://www.sparkfun.com/products/20680)
 - [SparkFun LiPo Fuel Gauge (TOL-10617)](https://www.sparkfun.com/products/10617)
 
