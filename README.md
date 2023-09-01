@@ -50,6 +50,9 @@ Parts of this library were inspired by [Daniel Porrey's max1704x library](https:
 ## Documentation
 
 - **[Installing an Arduino Library Guide](https://learn.sparkfun.com/tutorials/installing-an-arduino-library)** - Basic information on how to install an Arduino library.
+- **[LiPo Fuel Gauge (MAX1704X) Hookup Guide](https://learn.sparkfun.com/tutorials/lipo-fuel-gauge-max1704x-hookup-guide)** - Basic hookup guide for the MAX1704X (i.e. MAX1703 and MAX17048).
+
+
 
 ## License Information
 
